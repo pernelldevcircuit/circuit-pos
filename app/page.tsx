@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import CircuitRatesDashboard from '@/components/CircuitRatesDashboard'
-
+import CircuitRatesDashboard from './components/CircuitRatesDashboard'
 export default function Home() {
   const [pricingTiers, setPricingTiers] = useState<any[]>([])
   const [merchants, setMerchants] = useState<any[]>([])
