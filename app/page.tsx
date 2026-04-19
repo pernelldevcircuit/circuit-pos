@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import CircuitRatesDashboard from '@/components/CircuitRatesDashboard'
 
 export default function Home() {
   const [pricingTiers, setPricingTiers] = useState<any[]>([])
@@ -112,6 +113,8 @@ export default function Home() {
               ) : (
                 <div className="text-center py-12 text-gray-400">No transactions yet</div>
               )}
+
+                        <CircuitRatesDashboard />
             </div>
           </div>
         )}
