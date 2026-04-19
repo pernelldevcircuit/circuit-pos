@@ -29,7 +29,7 @@
  *     fill        integer     -- bar fill percent 0-100 (display only)
  */
 
-import { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Head from "next/head";
 
@@ -68,8 +68,8 @@ function getCircuitTier(volume: number, tiers: PricingTier[]): PricingTier {
 
 // ── Sub-components ───────────────────────────────────────────────────────────
 
-function Shimmer({ className = "" }: { className?: string }) {
-  return <div className={`animate-pulse bg-[#141c2e] rounded-lg ${className}`} />;
+function Shimmer({ className = "", style }: { className?: string; style?: React.CSSProperties }) {
+  return <div className={`animate-pulse bg-[#141c2e] rounded-lg ${className}`} style={style} />;
 }
 
 interface BarChartProps {
