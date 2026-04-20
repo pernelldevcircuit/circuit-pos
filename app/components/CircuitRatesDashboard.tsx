@@ -63,7 +63,7 @@ const fmtDollars = (n: number): string =>
 
 function getCircuitTier(volume: number, tiers: PricingTier[]): PricingTier {
   const sorted = [...tiers].sort((a, b) => b.min_volume - a.min_volume);
-  return sorted.find((t) => volume >= t.min_volume) ?? tiers[tiers.length - 1];
+  return sorted.find((t) => volume >= t.min_monthly_volume) ?? tiers[tiers.length - 1];
 }
 
 // ── Sub-components ───────────────────────────────────────────────────────────
@@ -206,7 +206,7 @@ function TierCard({ tier, isActive }: TierCardProps) {
         </span>
       )}
       <div className="font-display text-base font-bold text-[#f0f4ff] mb-1">
-        {tier.name}
+        {tier.tier_name}
       </div>
       <div className="font-mono text-3xl font-medium text-[#00d4ff] leading-none mb-1.5">
         {tier.rate_percentage.toFixed(2)}%
@@ -523,7 +523,7 @@ export default function CircuitRatesDashboard() {
                       boxShadow: "0 0 6px #00d4ff",
                     }}
                   />
-                  {activeTier.name} Tier · {activeTier.rate_percentage_percentage.toFixed(2)}% · {activeTier.label}
+                  {activetier.tier_name} Tier · {activeTier.rate_percentage_percentage.toFixed(2)}% · {activeTier.label}
                 </div>
               )}
             </div>
@@ -607,7 +607,7 @@ export default function CircuitRatesDashboard() {
                     <TierCard
                       key={tier.id}
                       tier={tier}
-                      isActive={activeTier?.name === tier.name}
+                      isActive={activeTier?.name === tier.tier_name}
                     />
                   ))}
             </div>
