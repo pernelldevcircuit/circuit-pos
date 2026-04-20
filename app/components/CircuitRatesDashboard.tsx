@@ -42,15 +42,15 @@ const supabase = createClient(
 // ── Types ────────────────────────────────────────────────────────────────────
 interface CompetitorRate {
   id: string;
-  name: string;
-  rate: number;
+  competitor_name: string;
+  rate_percentage: number;
   updated_at?: string;
 }
 
 interface PricingTier {
   id: string;
-  name: string;
-  rate: number;
+  competitor_name: string;
+  rate_percentage: number;
   min_volume: number;
   max_volume: number | null;
   label: string;
@@ -78,7 +78,7 @@ interface BarChartProps {
 }
 
 function BarChart({ competitors, circuitRate }: BarChartProps) {
-  const allRates = [circuitRate, ...competitors.map((c) => c.rate)];
+  const allRates = [circuitRate, ...competitors.map((c) => c.rate_percentage)];
   const maxRate = Math.max(...allRates);
   const sorted = [...competitors].sort((a, b) => b.rate - a.rate);
 
@@ -109,12 +109,12 @@ function BarChart({ competitors, circuitRate }: BarChartProps) {
 
       {/* Competitor rows */}
       {sorted.map((c) => {
-        const pct = (c.rate / maxRate) * 100;
-        const diff = (c.rate - circuitRate).toFixed(2);
+        const pct = (c.rate_percentage / maxRate) * 100;
+        const diff = (c.rate_percentage - circuitRate).toFixed(2);
         return (
           <div key={c.id} className="flex items-center gap-3">
             <span className="w-32 shrink-0 font-mono text-xs text-[#7a8aaa]">
-              {c.name}
+              {c.competitor_name}
             </span>
             <div className="flex-1 h-8 bg-white/[0.04] rounded-md overflow-hidden">
               <div
@@ -124,7 +124,7 @@ function BarChart({ competitors, circuitRate }: BarChartProps) {
               />
             </div>
             <span className="font-mono text-xs text-[#7a8aaa] w-10 text-right shrink-0">
-              {c.rate.toFixed(2)}%
+              {c.rate_percentage.toFixed(2)}%
             </span>
             <span className="text-[10px] bg-[rgba(0,255,157,0.12)] text-[#00ff9d] rounded px-1.5 py-0.5 font-mono shrink-0">
               +{diff}%
@@ -143,7 +143,7 @@ interface SavingsRowProps {
 }
 
 function SavingsRow({ competitor, circuitRate, volume }: SavingsRowProps) {
-  const monthlySaving = ((competitor.rate - circuitRate) / 100) * volume;
+  const monthlySaving = ((competitor.rate_percentage - circuitRate) / 100) * volume;
   const annualSaving = monthlySaving * 12;
   const isPositive = monthlySaving >= 0;
   const barWidth = Math.min(
@@ -155,7 +155,7 @@ function SavingsRow({ competitor, circuitRate, volume }: SavingsRowProps) {
     <div className="bg-[#141c2e] border border-white/[0.07] rounded-xl px-3.5 py-3
                     flex items-center gap-2 hover:border-white/[0.12] transition-colors">
       <span className="text-[13px] text-[#7a8aaa] shrink-0 w-28">
-        {competitor.name}
+        {competitor.competitor_name}
       </span>
       <div className="flex-1 h-[3px] bg-white/[0.07] rounded-full overflow-hidden">
         <div
@@ -240,12 +240,12 @@ export default function CircuitRatesDashboard() {
       : 2.4;
   const avgCompetitorRate =
     competitors.length > 0
-      ? competitors.reduce((s, c) => s + c.rate, 0) / competitors.length
+      ? competitors.reduce((s, c) => s + c.rate_percentage, 0) / competitors.length
       : 0;
 
   const maxAnnualSavings =
     competitors.length > 0
-      ? ((Math.max(...competitors.map((c) => c.rate)) - circuitBestRate) /
+      ? ((Math.max(...competitors.map((c) => c.rate_percentage)) - circuitBestRate) /
           100) *
         100000 *
         12
@@ -255,7 +255,7 @@ export default function CircuitRatesDashboard() {
     activeTier && competitors.length > 0
       ? Math.max(
           ...competitors.map(
-            (c) => ((c.rate - activeTier.rate) / 100) * volume
+            (c) => ((c.rate_percentage - activeTier.rate) / 100) * volume
           )
         )
       : 0;
@@ -263,7 +263,7 @@ export default function CircuitRatesDashboard() {
   const bestCompetitorName =
     activeTier && competitors.length > 0
       ? competitors.reduce((best, c) =>
-          c.rate > best.rate ? c : best
+          c.rate_percentage > best.rate ? c : best
         ).name
       : "";
 
