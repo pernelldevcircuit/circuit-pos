@@ -51,8 +51,8 @@ interface PricingTier {
   id: string;
   competitor_name: string;
   rate_percentage: number;
-  min_volume: number;
-  max_volume: number | null;
+  min_monthly_volume: number;
+  max_monthly_volume: number | null;
   label: string;
   fill: number;
 }
