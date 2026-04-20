@@ -62,7 +62,7 @@ const fmtDollars = (n: number): string =>
   "$" + Math.round(n).toLocaleString("en-US");
 
 function getCircuitTier(volume: number, tiers: PricingTier[]): PricingTier {
-  const sorted = [...tiers].sort((a, b) => b.min_volume - a.min_volume);
+  const sorted = [...tiers].sort((a, b) => b.min_monthly_volume - a.min_monthly_volume);
   return sorted.find((t) => volume >= t.min_monthly_volume) ?? tiers[tiers.length - 1];
 }
 
@@ -294,7 +294,7 @@ export default function CircuitRatesDashboard() {
     fetchData();
   }, [fetchData]);
 
-  const sortedTiers = [...tiers].sort((a, b) => a.min_volume - b.min_volume);
+  const sortedTiers = [...tiers].sort((a, b) => a.min_monthly_volume - b.min_monthly_volume);
 
   return (
     <>
