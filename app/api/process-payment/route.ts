@@ -23,10 +23,10 @@ export async function POST(request: Request) {
       )
     }
 
-    // Get merchant and pricing tier
+    // Get merchant record
     const { data: merchant, error: merchantError } = await supabase
       .from('merchants')
-      .select('*, pricing_tiers(*)')
+      .select('*')
       .eq('id', merchantId)
       .single()
 
@@ -37,12 +37,15 @@ export async function POST(request: Request) {
       )
     }
 
-    // Calculate Circuit's processing fee
-    const baseRate = merchant.pricing_tiers?.base_rate || 2.9
-    const perTransactionFee = merchant.pricing_tiers?.per_transaction_fee || 0.30
-    
+    // Use merchant's own rate fields (circuit_rate_percentage / circuit_per_transaction_fee)
+    const baseRate = merchant.circuit_rate_percentage || 2.90
+    const perTransactionFee = merchant.circuit_per_transaction_fee || 0.20
+
     const processingFee = Math.round((amount * (baseRate / 100)) + (perTransactionFee * 100))
     const netAmount = amount - processingFee
+
+    // Generate unique transaction number
+    const transactionNumber = `TXN-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`
 
     // Create Stripe Payment Intent
     const paymentIntent = await stripe.paymentIntents.create({
@@ -51,23 +54,26 @@ export async function POST(request: Request) {
       description: description || `Payment for merchant ${merchantId}`,
       metadata: {
         merchantId: merchantId,
+        transactionNumber: transactionNumber,
         processingFee: processingFee.toString(),
         netAmount: netAmount.toString()
       }
     })
 
-    // Record transaction in database
+    // Record transaction using correct schema columns
     const { data: transaction, error: txError } = await supabase
       .from('transactions')
       .insert([{
         merchant_id: merchantId,
-        amount: amount,
+        transaction_number: transactionNumber,
+        subtotal: amount,
+        total: amount,
+        profit: netAmount,
         currency: currency || 'usd',
-        processing_fee: processingFee,
-        net_amount: netAmount,
         status: 'pending',
+        payment_status: 'unpaid',
         stripe_payment_intent_id: paymentIntent.id,
-        description: description
+        notes: description || null
       }])
       .select()
       .single()
@@ -81,7 +87,6 @@ export async function POST(request: Request) {
       processingFee: processingFee,
       netAmount: netAmount
     })
-
   } catch (error) {
     console.error('Payment processing error:', error)
     return NextResponse.json(
