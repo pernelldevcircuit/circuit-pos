@@ -264,7 +264,7 @@ export default function CircuitRatesDashboard() {
     activeTier && competitors.length > 0
       ? competitors.reduce((best, c) =>
           c.rate_percentage > best.rate_percentage ? c : best
-        ).name
+        ).competitor_name
       : "";
 
   // Fetch data from Supabase
