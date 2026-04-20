@@ -7,7 +7,7 @@ import {
   PaymentElement,
   useStripe,
   useElements,
-} from '@stripe/react-stripe-js';"use client";
+} from '@stripe/react-stripe-js';
 // ── Stripe singleton ──────────────────────────────────────────────────────────
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ""
