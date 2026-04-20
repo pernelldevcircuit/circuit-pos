@@ -49,7 +49,7 @@ interface CompetitorRate {
 
 interface PricingTier {
   id: string;
-  competitor_name: string;
+  tier_name: string;
   rate_percentage: number;
   min_monthly_volume: number;
   max_monthly_volume: number | null;
