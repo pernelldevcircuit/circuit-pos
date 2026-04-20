@@ -80,7 +80,7 @@ interface BarChartProps {
 function BarChart({ competitors, circuitRate }: BarChartProps) {
   const allRates = [circuitRate, ...competitors.map((c) => c.rate_percentage)];
   const maxRate = Math.max(...allRates);
-  const sorted = [...competitors].sort((a, b) => b.rate - a.rate);
+  const sorted = [...competitors].sort((a, b) => b.rate_percentage - a.rate_percentage);
 
   return (
     <div className="flex flex-col gap-3.5">
@@ -209,7 +209,7 @@ function TierCard({ tier, isActive }: TierCardProps) {
         {tier.name}
       </div>
       <div className="font-mono text-3xl font-medium text-[#00d4ff] leading-none mb-1.5">
-        {tier.rate.toFixed(2)}%
+        {tier.rate_percentage.toFixed(2)}%
       </div>
       <div className="font-mono text-[11px] text-[#3d4f6e] tracking-wider">
         {tier.label}
@@ -236,7 +236,7 @@ export default function CircuitRatesDashboard() {
   const activeTier = tiers.length > 0 ? getCircuitTier(volume, tiers) : null;
   const circuitBestRate =
     tiers.length > 0
-      ? Math.min(...tiers.map((t) => t.rate))
+      ? Math.min(...tiers.map((t) => t.rate_percentage))
       : 2.4;
   const avgCompetitorRate =
     competitors.length > 0
@@ -255,7 +255,7 @@ export default function CircuitRatesDashboard() {
     activeTier && competitors.length > 0
       ? Math.max(
           ...competitors.map(
-            (c) => ((c.rate_percentage - activeTier.rate) / 100) * volume
+            (c) => ((c.rate_percentage - activeTier.rate_percentage_percentage) / 100) * volume
           )
         )
       : 0;
@@ -263,7 +263,7 @@ export default function CircuitRatesDashboard() {
   const bestCompetitorName =
     activeTier && competitors.length > 0
       ? competitors.reduce((best, c) =>
-          c.rate_percentage > best.rate ? c : best
+          c.rate_percentage > best.rate_percentage_percentage ? c : best
         ).name
       : "";
 
@@ -523,7 +523,7 @@ export default function CircuitRatesDashboard() {
                       boxShadow: "0 0 6px #00d4ff",
                     }}
                   />
-                  {activeTier.name} Tier · {activeTier.rate.toFixed(2)}% · {activeTier.label}
+                  {activeTier.name} Tier · {activeTier.rate_percentage_percentage.toFixed(2)}% · {activeTier.label}
                 </div>
               )}
             </div>
@@ -536,12 +536,12 @@ export default function CircuitRatesDashboard() {
                   ))
                 : competitors
                     .slice()
-                    .sort((a, b) => b.rate - a.rate)
+                    .sort((a, b) => b.rate_percentage - a.rate_percentage)
                     .map((c) => (
                       <SavingsRow
                         key={c.id}
                         competitor={c}
-                        circuitRate={activeTier?.rate ?? circuitBestRate}
+                        circuitRate={activeTier?.rate_percentage ?? circuitBestRate}
                         volume={volume}
                       />
                     ))}
