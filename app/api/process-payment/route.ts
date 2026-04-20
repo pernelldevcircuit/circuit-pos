@@ -89,7 +89,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Payment processing error:', error)
     return NextResponse.json(
-            { error: (error as Error).message || 'Payment processing failed' },
+                  { error: 'Payment processing failed' },
       { status: 500 }
     )
   }
