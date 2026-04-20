@@ -255,7 +255,7 @@ export default function CircuitRatesDashboard() {
     activeTier && competitors.length > 0
       ? Math.max(
           ...competitors.map(
-            (c) => ((c.rate_percentage - activeTier.rate_percentage_percentage) / 100) * volume
+            (c) => ((c.rate_percentage - activeTier.rate_percentage) / 100) * volume
           )
         )
       : 0;
@@ -263,7 +263,7 @@ export default function CircuitRatesDashboard() {
   const bestCompetitorName =
     activeTier && competitors.length > 0
       ? competitors.reduce((best, c) =>
-          c.rate_percentage > best.rate_percentage_percentage ? c : best
+          c.rate_percentage > best.rate_percentage ? c : best
         ).name
       : "";
 
@@ -523,7 +523,7 @@ export default function CircuitRatesDashboard() {
                       boxShadow: "0 0 6px #00d4ff",
                     }}
                   />
-                  {activetier.tier_name} Tier · {activeTier.rate_percentage_percentage.toFixed(2)}% · {activeTier.label}
+                  {activetier.tier_name} Tier · {activeTier.rate_percentage.toFixed(2)}% · {activeTier.label}
                 </div>
               )}
             </div>
