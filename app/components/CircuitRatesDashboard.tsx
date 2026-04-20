@@ -274,8 +274,8 @@ export default function CircuitRatesDashboard() {
     try {
       const [{ data: compData, error: compErr }, { data: tierData, error: tierErr }] =
         await Promise.all([
-          supabase.from("competitor_rates").select("*").order("rate", { ascending: false }),
-          supabase.from("pricing_tiers").select("*").order("min_volume", { ascending: true }),
+          supabase.from("competitor_rates").select("*").order("rate_percentage", { ascending: false }),
+          supabase.from("pricing_tiers").select("*").order("min_monthly_volume", { ascending: true }),
         ]);
 
       if (compErr) throw new Error(compErr.message);
@@ -523,7 +523,7 @@ export default function CircuitRatesDashboard() {
                       boxShadow: "0 0 6px #00d4ff",
                     }}
                   />
-                  {activetier.tier_name} Tier · {activeTier.rate_percentage.toFixed(2)}% · {activeTier.label}
+                  {activeTier.tier_name} Tier · {activeTier.rate_percentage.toFixed(2)}% · {activeTier.label}
                 </div>
               )}
             </div>
@@ -607,7 +607,7 @@ export default function CircuitRatesDashboard() {
                     <TierCard
                       key={tier.id}
                       tier={tier}
-                      isActive={activeTier?.name === tier.tier_name}
+                      isActive={activeTier?.tier_name === tier.tier_name}
                     />
                   ))}
             </div>
