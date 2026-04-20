@@ -8,38 +8,6 @@ import {
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js';"use client";
-
-/**
- * Circuit POS — Terminal Page
- * Path: app/pos/page.tsx  (or pages/pos.tsx for Pages Router)
- *
- * Dependencies:
- *   npm install @stripe/stripe-js @stripe/react-stripe-js
- *
- * Environment variables:
- *   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
- *
- * API route expected at POST /api/process-payment:
- *   Body:    { merchantId: string; amount: number; description: string }
- *   Returns: { clientSecret: string }
- */
-
-import React, {
-  useState,
-  useMemo,
-  useRef,
-  useEffect,
-  useCallback,
-  FormEvent,
-} from "react";
-import { loadStripe } from "@stripe/stripe-js";
-import {
-  Elements,
-  PaymentElement,
-  useStripe,
-  useElements,
-} from "@stripe/react-stripe-js";
-
 // ── Stripe singleton ──────────────────────────────────────────────────────────
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ""
