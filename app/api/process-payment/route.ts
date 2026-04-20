@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       )
     }
 
-    // Use merchant's own rate fields (circuit_rate_percentage / circuit_per_transaction_fee)
+    // Use merchant rate fields
     const baseRate = merchant.circuit_rate_percentage || 2.90
     const perTransactionFee = merchant.circuit_per_transaction_fee || 0.20
 
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
       }
     })
 
-    // Record transaction using correct schema columns
+    // Record transaction - only using columns that exist in schema
     const { data: transaction, error: txError } = await supabase
       .from('transactions')
       .insert([{
@@ -69,7 +69,6 @@ export async function POST(request: Request) {
         subtotal: amount,
         total: amount,
         profit: netAmount,
-        currency: currency || 'usd',
         status: 'pending',
         payment_status: 'unpaid',
         stripe_payment_intent_id: paymentIntent.id,
