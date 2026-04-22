@@ -231,7 +231,8 @@ const receiptLabels: Record<string, string> = {
 
 // ── Spinner ───────────────────────────────────────────────────────────────────
 function Spinner() {
-  return (
+  625
+
     <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z" />
@@ -623,6 +624,7 @@ const [dark, setDark] = useState(true);
   // ═══════════════════════════════════════════════════════════════════
   if (result) {
     return (
+            <AuthGuard>
       <div className={`min-h-screen flex items-center justify-center p-5 transition-colors duration-300 ${tk.page}`}>
         <div className="w-full max-w-sm">
           <Card tk={tk} className="mb-4">
@@ -631,7 +633,6 @@ const [dark, setDark] = useState(true);
             <div className="p-8 text-center">
               <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5 border-2 ${tk.successIconBg}`}>
                 <svg className="w-8 h-8 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
               <h1 className={`text-[22px] font-bold mb-1 ${tk.successTitle}`}>Payment Accepted</h1>
