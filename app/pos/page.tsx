@@ -1099,6 +1099,18 @@ export default function CircuitPOS() {
         </div>
       </div>
 
+      function StickyBottomBar(...) {
+  ...
+}
+
+function StickyContactButton({ dark }: { dark: boolean }) {
+  ...
+}
+
+interface PaymentFormProps {
+  ...
+}
+      
       {/* Sticky bottom bar: mobile/tablet only */}
       <StickyBottomBar
         tk={tk}
