@@ -778,18 +778,14 @@ export default function CircuitPOS() {
       {/* ── Header ── */}
       <header className={`border-b sticky top-0 z-20 transition-colors duration-300 ${tk.header}`}>
         <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
+
+          {/* ── Brand / Logo ── */}
           <div className="flex items-center gap-3 shrink-0">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-sm ${tk.tapIcon}`}>
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <div>
-              <div className={`text-[16px] font-bold leading-none ${tk.totalLabel}`}>Circuit</div>
-              <div className={`text-[10px] font-semibold uppercase tracking-widest leading-none mt-0.5 ${tk.subtleText}`}>
-                Point of Sale
-              </div>
-            </div>
+            <img
+              src="https://assets.cdn.filesafe.space/cZKbxiE0isWncXg1MywT/media/69e8c50638e07b34846b1d97.png"
+              alt="Circuit"
+              className="h-8 w-auto object-contain"
+            />
           </div>
 
           <div className="flex items-center gap-3">
