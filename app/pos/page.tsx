@@ -26,7 +26,7 @@ function buildStripeAppearance(dark: boolean) {
       borderRadius: "10px",
       spacingUnit: "5px",
     },
-    rules: dark
+    rules: (dark
       ? {
           ".Input": {
             border: "1.5px solid #334155",
@@ -68,7 +68,8 @@ function buildStripeAppearance(dark: boolean) {
             color: "#6b7280",
             marginBottom: "6px",
           },
-        },
+        }
+    ) as any,
   };
 }
 
