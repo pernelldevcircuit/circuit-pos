@@ -1,4 +1,4 @@
-l'use client';
+'use client';
 
 import { useState, useMemo, useEffect, FormEvent } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
@@ -231,8 +231,8 @@ const receiptLabels: Record<string, string> = {
 
 // ── Spinner ───────────────────────────────────────────────────────────────────
 function Spinner() {
-
-  return (  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+  return (
+    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
     </svg>
   );
@@ -504,7 +504,7 @@ function PaymentForm({ total, tk, onSuccess, onCancel }: PaymentFormProps) {
 // ── Main POS Component ────────────────────────────────────────────────────────
 export default function CircuitPOS() {
   // ── Theme ──────────────────────────────────────────────────────────────────
-const [dark, setDark] = useState(true);
+  const [dark, setDark] = useState(true);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -622,83 +622,83 @@ const [dark, setDark] = useState(true);
   // ═══════════════════════════════════════════════════════════════════
   if (result) {
     return (
-            <AuthGuard>
-      <div className={`min-h-screen flex items-center justify-center p-5 transition-colors duration-300 ${tk.page}`}>
-        <div className="w-full max-w-sm">
-          <Card tk={tk} className="mb-4">
-            <div className="h-1.5 bg-gradient-to-r from-emerald-400 to-teal-400" />
-                <AuthGuard>
-            <div className="p-8 text-center">
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5 border-2 ${tk.successIconBg}`}>
-                <svg className="w-8 h-8 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                </svg>
-              </div>
-              <h1 className={`text-[22px] font-bold mb-1 ${tk.successTitle}`}>Payment Accepted</h1>
-              <p className={`text-[14px] ${tk.subtleText}`}>Transaction complete</p>
-              <div className={`mt-6 py-5 border-t border-b ${tk.rowBorder}`}>
-                <div className={`text-[13px] font-medium mb-1 ${tk.subtleText}`}>Total Charged</div>
-                <div className={`text-[40px] font-bold tracking-tight leading-none ${tk.successTotalColor}`}>
-                  {fmt(result.total)}
+      <AuthGuard>
+        <div className={`min-h-screen flex items-center justify-center p-5 transition-colors duration-300 ${tk.page}`}>
+          <div className="w-full max-w-sm">
+            <Card tk={tk} className="mb-4">
+              <div className="h-1.5 bg-gradient-to-r from-emerald-400 to-teal-400" />
+              <div className="p-8 text-center">
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5 border-2 ${tk.successIconBg}`}>
+                  <svg className="w-8 h-8 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  </svg>
+                </div>
+                <h1 className={`text-[22px] font-bold mb-1 ${tk.successTitle}`}>Payment Accepted</h1>
+                <p className={`text-[14px] ${tk.subtleText}`}>Transaction complete</p>
+                <div className={`mt-6 py-5 border-t border-b ${tk.rowBorder}`}>
+                  <div className={`text-[13px] font-medium mb-1 ${tk.subtleText}`}>Total Charged</div>
+                  <div className={`text-[40px] font-bold tracking-tight leading-none ${tk.successTotalColor}`}>
+                    {fmt(result.total)}
+                  </div>
                 </div>
               </div>
-            </div>
-          </Card>
+            </Card>
 
-          <Card tk={tk} className="mb-4">
-            <CardHeader tk={tk} title="Transaction Details" />
-            <div className="px-5 py-1">
-              {[
-                ["ID",             result.transactionId.slice(0, 18) + "…"],
-                ["Subtotal",       fmt(result.subtotal)],
-                [`Tax (${result.taxRate}%)`, fmt(result.taxAmount)],
-                ["Processing Fee", fmt(result.processingFee)],
-                ["Receipt",
-                  result.receipt.type === "none"  ? "None"  :
-                  result.receipt.type === "print" ? "Print" :
-                  `${result.receipt.type.toUpperCase()} · ${'contact' in result.receipt ? result.receipt.contact : ''}`
-                ],
-              ].map(([label, value], i, arr) => (
-                <div
-                  key={label}
-                  className={`flex justify-between items-center py-4 ${i < arr.length - 1 ? `border-b ${tk.rowBorder}` : ""}`}
-                >
-                  <span className={`text-[13px] ${tk.subtleText}`}>{label}</span>
-                  <span className={`text-[13px] font-semibold text-right max-w-[200px] truncate ${tk.successTitle}`}>{value}</span>
-                </div>
-              ))}
-            </div>
-          </Card>
-
-          {result.items.length > 0 && (
-            <Card tk={tk} className="mb-5">
-              <CardHeader tk={tk} title={`Items · ${result.items.length}`} />
+            <Card tk={tk} className="mb-4">
+              <CardHeader tk={tk} title="Transaction Details" />
               <div className="px-5 py-1">
-                {result.items.map((item, i) => (
+                {[
+                  ["ID",             result.transactionId.slice(0, 18) + "…"],
+                  ["Subtotal",       fmt(result.subtotal)],
+                  [`Tax (${result.taxRate}%)`, fmt(result.taxAmount)],
+                  ["Processing Fee", fmt(result.processingFee)],
+                  ["Receipt",
+                    result.receipt.type === "none"  ? "None"  :
+                    result.receipt.type === "print" ? "Print" :
+                    `${result.receipt.type.toUpperCase()} · ${'contact' in result.receipt ? result.receipt.contact : ''}`
+                  ],
+                ].map(([label, value], i, arr) => (
                   <div
-                    key={item.id}
-                    className={`flex justify-between items-center py-4 ${i < result.items.length - 1 ? `border-b ${tk.rowBorder}` : ""}`}
+                    key={label}
+                    className={`flex justify-between items-center py-4 ${i < arr.length - 1 ? `border-b ${tk.rowBorder}` : ""}`}
                   >
-                    <div>
-                      <div className={`text-[14px] font-medium ${tk.successTitle}`}>{item.name}</div>
-                      <div className={`text-[12px] mt-0.5 ${tk.subtleText}`}>Qty {item.quantity} · {fmt(item.unitPrice)} ea.</div>
-                    </div>
-                    <span className={`text-[14px] font-semibold ${tk.successTitle}`}>
-                      {fmt(item.quantity * item.unitPrice)}
-                    </span>
+                    <span className={`text-[13px] ${tk.subtleText}`}>{label}</span>
+                    <span className={`text-[13px] font-semibold text-right max-w-[200px] truncate ${tk.successTitle}`}>{value}</span>
                   </div>
                 ))}
               </div>
             </Card>
-          )}
 
-          <button
-            onClick={reset}
-            className={`w-full h-14 rounded-2xl text-white text-[16px] font-bold transition-all duration-150 ${tk.ctaPrimary}`}
-          >
-            New Transaction
-          </button>
+            {result.items.length > 0 && (
+              <Card tk={tk} className="mb-5">
+                <CardHeader tk={tk} title={`Items · ${result.items.length}`} />
+                <div className="px-5 py-1">
+                  {result.items.map((item, i) => (
+                    <div
+                      key={item.id}
+                      className={`flex justify-between items-center py-4 ${i < result.items.length - 1 ? `border-b ${tk.rowBorder}` : ""}`}
+                    >
+                      <div>
+                        <div className={`text-[14px] font-medium ${tk.successTitle}`}>{item.name}</div>
+                        <div className={`text-[12px] mt-0.5 ${tk.subtleText}`}>Qty {item.quantity} · {fmt(item.unitPrice)} ea.</div>
+                      </div>
+                      <span className={`text-[14px] font-semibold ${tk.successTitle}`}>
+                        {fmt(item.quantity * item.unitPrice)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+
+            <button
+              onClick={reset}
+              className={`w-full h-14 rounded-2xl text-white text-[16px] font-bold transition-all duration-150 ${tk.ctaPrimary}`}
+            >
+              New Transaction
+            </button>
+          </div>
         </div>
-      </div>
+      </AuthGuard>
     );
   }
 
@@ -778,321 +778,322 @@ const [dark, setDark] = useState(true);
   // ── MAIN POS VIEW ────────────────────────────────────────────────
   // ═══════════════════════════════════════════════════════════════════
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${tk.page}`}>
-      {/* ── Header ── */}
-      <header className={`border-b sticky top-0 z-20 transition-colors duration-300 ${tk.header}`}>
-        <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
+    <AuthGuard>
+      <div className={`min-h-screen transition-colors duration-300 ${tk.page}`}>
+        {/* ── Header ── */}
+        <header className={`border-b sticky top-0 z-20 transition-colors duration-300 ${tk.header}`}>
+          <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
 
-          {/* ── Brand / Logo ── */}
-          <div className="flex items-center gap-3 shrink-0">
-            <img
-              src="https://assets.cdn.filesafe.space/cZKbxiE0isWncXg1MywT/media/69e8c50638e07b34846b1d97.png"
-              alt="Circuit"
-              className="h-14 w-auto object-contain py-1"
-            />
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <label
-                htmlFor="merchant-id"
-                className={`text-[11px] font-semibold uppercase tracking-wider hidden sm:block ${tk.label}`}
-              >
-                Merchant
-              </label>
-              <input
-                id="merchant-id"
-                value={merchantId}
-                onChange={(e) => setMerchantId(e.target.value)}
-                placeholder="MID-000000"
-                className={`rounded-xl px-3.5 py-2.5 text-[13px] font-medium border-[1.5px] outline-none w-36 focus:ring-[3px] transition-all duration-150 ${tk.merchantInput}`}
+            {/* ── Brand / Logo ── */}
+            <div className="flex items-center gap-3 shrink-0">
+              <img
+                src="https://assets.cdn.filesafe.space/cZKbxiE0isWncXg1MywT/media/69e8c50638e07b34846b1d97.png"
+                alt="Circuit"
+                className="h-14 w-auto object-contain py-1"
               />
             </div>
-            <ThemeToggle dark={dark} onToggle={toggleTheme} />
+
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <label
+                  htmlFor="merchant-id"
+                  className={`text-[11px] font-semibold uppercase tracking-wider hidden sm:block ${tk.label}`}
+                >
+                  Merchant
+                </label>
+                <input
+                  id="merchant-id"
+                  value={merchantId}
+                  onChange={(e) => setMerchantId(e.target.value)}
+                  placeholder="MID-000000"
+                  className={`rounded-xl px-3.5 py-2.5 text-[13px] font-medium border-[1.5px] outline-none w-36 focus:ring-[3px] transition-all duration-150 ${tk.merchantInput}`}
+                />
+              </div>
+              <ThemeToggle dark={dark} onToggle={toggleTheme} />
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* ── Body ── */}
-      <div className="max-w-6xl mx-auto px-4 py-5 lg:py-7">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-5 items-start">
+        {/* ── Body ── */}
+        <div className="max-w-6xl mx-auto px-4 py-5 lg:py-7">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-5 items-start">
 
-          {/* ── LEFT COLUMN ── */}
-          <div className="space-y-4 pb-28 lg:pb-0">
+            {/* ── LEFT COLUMN ── */}
+            <div className="space-y-4 pb-28 lg:pb-0">
 
-            {/* Add Item */}
-            <Card tk={tk}>
-              <CardHeader tk={tk} title="Add Item" />
-              <div className="p-5 space-y-4">
-                <div>
-                  <label htmlFor="item-name" className={labelCls}>Item Name</label>
-                  <input
-                    id="item-name"
-                    value={itemName}
-                    onChange={(e) => setItemName(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && addItem()}
-                    placeholder="Product or service description"
-                    className={inputCls}
-                    autoComplete="off"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
+              {/* Add Item */}
+              <Card tk={tk}>
+                <CardHeader tk={tk} title="Add Item" />
+                <div className="p-5 space-y-4">
                   <div>
-                    <label htmlFor="item-qty" className={labelCls}>Quantity</label>
+                    <label htmlFor="item-name" className={labelCls}>Item Name</label>
                     <input
-                      id="item-qty"
-                      type="number"
-                      inputMode="numeric"
-                      min="1"
-                      value={itemQty}
-                      onChange={(e) => setItemQty(e.target.value)}
-                      className={inputCls}
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="item-price" className={labelCls}>Unit Price ($)</label>
-                    <input
-                      id="item-price"
-                      type="number"
-                      inputMode="decimal"
-                      min="0"
-                      step="0.01"
-                      value={itemPrice}
-                      onChange={(e) => setItemPrice(e.target.value)}
+                      id="item-name"
+                      value={itemName}
+                      onChange={(e) => setItemName(e.target.value)}
                       onKeyDown={e => e.key === "Enter" && addItem()}
-                      placeholder="0.00"
+                      placeholder="Product or service description"
                       className={inputCls}
+                      autoComplete="off"
                     />
                   </div>
-                </div>
-                {addError && <ErrorBanner msg={addError} />}
-                <button
-                  onClick={addItem}
-                  className={`w-full py-3.5 rounded-xl text-[15px] font-semibold transition-all duration-150 flex items-center justify-center gap-2 ${tk.addItemBtn}`}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-                  </svg>
-                  Add to Order
-                </button>
-              </div>
-            </Card>
-
-            {/* Cart */}
-            <Card tk={tk}>
-              <CardHeader
-                tk={tk}
-                title="Order"
-                right={items.length > 0 ? (
-                  <span className={`text-[12px] font-bold px-2.5 py-1 rounded-full
-                    ${dark ? "text-blue-300 bg-blue-900/40" : "text-blue-700 bg-blue-50"}`}>
-                    {items.length} item{items.length !== 1 ? "s" : ""}
-                  </span>
-                ) : null}
-              />
-              {items.length === 0 ? (
-                <div className="py-16 px-5 text-center">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 ${tk.emptyBg}`}>
-                    <svg className={`w-6 h-6 ${tk.mutedText}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m5-9v9m4-9v9m5-9l2 9" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label htmlFor="item-qty" className={labelCls}>Quantity</label>
+                      <input
+                        id="item-qty"
+                        type="number"
+                        inputMode="numeric"
+                        min="1"
+                        value={itemQty}
+                        onChange={(e) => setItemQty(e.target.value)}
+                        className={inputCls}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="item-price" className={labelCls}>Unit Price ($)</label>
+                      <input
+                        id="item-price"
+                        type="number"
+                        inputMode="decimal"
+                        min="0"
+                        step="0.01"
+                        value={itemPrice}
+                        onChange={(e) => setItemPrice(e.target.value)}
+                        onKeyDown={e => e.key === "Enter" && addItem()}
+                        placeholder="0.00"
+                        className={inputCls}
+                      />
+                    </div>
+                  </div>
+                  {addError && <ErrorBanner msg={addError} />}
+                  <button
+                    onClick={addItem}
+                    className={`w-full py-3.5 rounded-xl text-[15px] font-semibold transition-all duration-150 flex items-center justify-center gap-2 ${tk.addItemBtn}`}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
                     </svg>
-                  </div>
-                  <p className={`text-[14px] ${tk.subtleText}`}>No items added yet</p>
-                  <p className={`text-[12px] mt-1 ${tk.mutedText}`}>Use the form above to add items</p>
+                    Add to Order
+                  </button>
                 </div>
-              ) : (
-                <div>
-                  {items.map((item, idx) => (
-                    <div
-                      key={item.id}
-                      className={`flex items-center gap-4 px-5 py-4 ${idx < items.length - 1 ? `border-b ${tk.rowBorder}` : ""}`}
-                    >
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold shrink-0 ${tk.itemBadge}`}>
-                        {idx + 1}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className={`text-[15px] font-semibold truncate ${tk.totalLabel}`}>{item.name}</div>
-                        <div className={`text-[12px] mt-0.5 ${tk.subtleText}`}>{fmt(item.unitPrice)} × {item.quantity}</div>
-                      </div>
-                      <div className="flex items-center gap-3 shrink-0">
-                        <span className={`text-[15px] font-bold ${tk.totalLabel}`}>
-                          {fmt(item.quantity * item.unitPrice)}
-                        </span>
-                        <button
-                          onClick={() => removeItem(item.id)}
-                          className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150 ${tk.removeBtn}`}
-                          aria-label={`Remove ${item.name}`}
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Card>
+              </Card>
 
-            {/* Tap to Pay */}
-            <TapToPayCard tk={tk} />
-
-            {/* Mobile-only: tax + receipt */}
-            <div className="lg:hidden space-y-4">
+              {/* Cart */}
               <Card tk={tk}>
-                <CardHeader tk={tk} title="Tax Rate" />
-                <div className="p-5">
-                  <div className="relative">
-                    <label htmlFor="tax-rate-mobile" className="sr-only">Tax Rate</label>
-                    <input
-                      id="tax-rate-mobile"
-                      type="number"
-                      inputMode="decimal"
-                      min="0"
-                      max="100"
-                      step="0.1"
-                      value={taxRate}
-                      onChange={(e) => setTaxRate(e.target.value)}
-                      className={`${inputCls} pr-10`}
-                    />
-                    <span
-                      aria-hidden="true"
-                      className={`absolute right-4 top-1/2 -translate-y-1/2 font-semibold text-[15px] ${tk.subtleText}`}
-                    >
-                      %
+                <CardHeader
+                  tk={tk}
+                  title="Order"
+                  right={items.length > 0 ? (
+                    <span className={`text-[12px] font-bold px-2.5 py-1 rounded-full
+                      ${dark ? "text-blue-300 bg-blue-900/40" : "text-blue-700 bg-blue-50"}`}>
+                      {items.length} item{items.length !== 1 ? "s" : ""}
                     </span>
-                  </div>
-                </div>
-              </Card>
-
-              <Card tk={tk}>
-                <CardHeader tk={tk} title="Receipt" />
-                <div className="p-4">
-                  <ReceiptPills
-                    tk={tk}
-                    receiptType={receiptType}
-                    onSelect={setReceiptType}
-                    receiptContact={receiptContact}
-                    onContactChange={setReceiptContact}
-                  />
-                </div>
-              </Card>
-
-              {intentError && <ErrorBanner msg={intentError} />}
-            </div>
-          </div>
-
-          {/* ── RIGHT COLUMN — sticky on lg ── */}
-          <div className="hidden lg:block">
-            <div className="sticky top-[80px] space-y-4">
-
-              {/* Tax rate */}
-              <Card tk={tk}>
-                <CardHeader tk={tk} title="Tax Rate" />
-                <div className="p-5">
-                  <div className="relative">
-                    <label htmlFor="tax-rate-desktop" className="sr-only">Tax Rate</label>
-                    <input
-                      id="tax-rate-desktop"
-                      type="number"
-                      inputMode="decimal"
-                      min="0"
-                      max="100"
-                      step="0.1"
-                      value={taxRate}
-                      onChange={(e) => setTaxRate(e.target.value)}
-                      className={`${inputCls} pr-10`}
-                    />
-                    <span
-                      aria-hidden="true"
-                      className={`absolute right-4 top-1/2 -translate-y-1/2 font-semibold text-[15px] ${tk.subtleText}`}
-                    >
-                      %
-                    </span>
-                  </div>
-                </div>
-              </Card>
-
-              {/* Order Summary */}
-              <Card tk={tk}>
-                <CardHeader tk={tk} title="Order Summary" />
-                <div className="px-5 pt-2 pb-4">
-                  {[
-                    ["Subtotal",       fmt(subtotal)],
-                    [`Tax (${parseFloat(taxRate) || 0}%)`, fmt(tax)],
-                    ["Processing Fee", fmt(processingFee)],
-                  ].map(([label, value]) => (
-                    <div key={label} className={`flex justify-between items-center py-3 border-b ${tk.rowBorder}`}>
-                      <span className={`text-[13px] ${tk.subtleText}`}>{label}</span>
-                      <span className={`text-[13px] font-medium ${tk.subtleText}`}>{value}</span>
-                    </div>
-                  ))}
-                  <div className="flex justify-between items-center pt-4 pb-1">
-                    <span className={`text-[15px] font-bold ${tk.totalLabel}`}>Total</span>
-                    <span className={`text-[28px] font-bold tracking-tight ${tk.totalAmt}`}>{fmt(total)}</span>
-                  </div>
-                </div>
-              </Card>
-
-              {/* Receipt */}
-              <Card tk={tk}>
-                <CardHeader tk={tk} title="Receipt" />
-                <div className="p-4">
-                  <ReceiptPills
-                    tk={tk}
-                    receiptType={receiptType}
-                    onSelect={setReceiptType}
-                    receiptContact={receiptContact}
-                    onContactChange={setReceiptContact}
-                  />
-                </div>
-              </Card>
-
-              {/* Charge CTA */}
-              <div className="space-y-3 pb-2">
-                {intentError && <ErrorBanner msg={intentError} />}
-                <button
-                  onClick={startCheckout}
-                  disabled={items.length === 0 || loadingIntent || total <= 0}
-                  className={`w-full h-16 rounded-2xl text-white text-[17px] font-bold flex items-center justify-center gap-3
-                    transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed ${tk.ctaPrimary}`}
-                >
-                  {loadingIntent ? (
-                    <>
-                      <Spinner />
-                      Preparing…
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
-                          d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  ) : null}
+                />
+                {items.length === 0 ? (
+                  <div className="py-16 px-5 text-center">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 ${tk.emptyBg}`}>
+                      <svg className={`w-6 h-6 ${tk.mutedText}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                          d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m5-9v9m4-9v9m5-9l2 9" />
                       </svg>
-                      Charge {fmt(total)}
-                    </>
-                  )}
-                </button>
-                {items.length === 0 && (
-                  <p className={`text-center text-[12px] ${tk.mutedText}`}>
-                    Add at least one item to continue
-                  </p>
+                    </div>
+                    <p className={`text-[14px] ${tk.subtleText}`}>No items added yet</p>
+                    <p className={`text-[12px] mt-1 ${tk.mutedText}`}>Use the form above to add items</p>
+                  </div>
+                ) : (
+                  <div>
+                    {items.map((item, idx) => (
+                      <div
+                        key={item.id}
+                        className={`flex items-center gap-4 px-5 py-4 ${idx < items.length - 1 ? `border-b ${tk.rowBorder}` : ""}`}
+                      >
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold shrink-0 ${tk.itemBadge}`}>
+                          {idx + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className={`text-[15px] font-semibold truncate ${tk.totalLabel}`}>{item.name}</div>
+                          <div className={`text-[12px] mt-0.5 ${tk.subtleText}`}>{fmt(item.unitPrice)} × {item.quantity}</div>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                          <span className={`text-[15px] font-bold ${tk.totalLabel}`}>
+                            {fmt(item.quantity * item.unitPrice)}
+                          </span>
+                          <button
+                            onClick={() => removeItem(item.id)}
+                            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150 ${tk.removeBtn}`}
+                            aria-label={`Remove ${item.name}`}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
+              </Card>
+
+              {/* Tap to Pay */}
+              <TapToPayCard tk={tk} />
+
+              {/* Mobile-only: tax + receipt */}
+              <div className="lg:hidden space-y-4">
+                <Card tk={tk}>
+                  <CardHeader tk={tk} title="Tax Rate" />
+                  <div className="p-5">
+                    <div className="relative">
+                      <label htmlFor="tax-rate-mobile" className="sr-only">Tax Rate</label>
+                      <input
+                        id="tax-rate-mobile"
+                        type="number"
+                        inputMode="decimal"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={taxRate}
+                        onChange={(e) => setTaxRate(e.target.value)}
+                        className={`${inputCls} pr-10`}
+                      />
+                      <span
+                        aria-hidden="true"
+                        className={`absolute right-4 top-1/2 -translate-y-1/2 font-semibold text-[15px] ${tk.subtleText}`}
+                      >
+                        %
+                      </span>
+                    </div>
+                  </div>
+                </Card>
+
+                <Card tk={tk}>
+                  <CardHeader tk={tk} title="Receipt" />
+                  <div className="p-4">
+                    <ReceiptPills
+                      tk={tk}
+                      receiptType={receiptType}
+                      onSelect={setReceiptType}
+                      receiptContact={receiptContact}
+                      onContactChange={setReceiptContact}
+                    />
+                  </div>
+                </Card>
+
+                {intentError && <ErrorBanner msg={intentError} />}
+              </div>
+            </div>
+
+            {/* ── RIGHT COLUMN — sticky on lg ── */}
+            <div className="hidden lg:block">
+              <div className="sticky top-[80px] space-y-4">
+
+                {/* Tax rate */}
+                <Card tk={tk}>
+                  <CardHeader tk={tk} title="Tax Rate" />
+                  <div className="p-5">
+                    <div className="relative">
+                      <label htmlFor="tax-rate-desktop" className="sr-only">Tax Rate</label>
+                      <input
+                        id="tax-rate-desktop"
+                        type="number"
+                        inputMode="decimal"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={taxRate}
+                        onChange={(e) => setTaxRate(e.target.value)}
+                        className={`${inputCls} pr-10`}
+                      />
+                      <span
+                        aria-hidden="true"
+                        className={`absolute right-4 top-1/2 -translate-y-1/2 font-semibold text-[15px] ${tk.subtleText}`}
+                      >
+                        %
+                      </span>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* Order Summary */}
+                <Card tk={tk}>
+                  <CardHeader tk={tk} title="Order Summary" />
+                  <div className="px-5 pt-2 pb-4">
+                    {[
+                      ["Subtotal",       fmt(subtotal)],
+                      [`Tax (${parseFloat(taxRate) || 0}%)`, fmt(tax)],
+                      ["Processing Fee", fmt(processingFee)],
+                    ].map(([label, value]) => (
+                      <div key={label} className={`flex justify-between items-center py-3 border-b ${tk.rowBorder}`}>
+                        <span className={`text-[13px] ${tk.subtleText}`}>{label}</span>
+                        <span className={`text-[13px] font-medium ${tk.subtleText}`}>{value}</span>
+                      </div>
+                    ))}
+                    <div className="flex justify-between items-center pt-4 pb-1">
+                      <span className={`text-[15px] font-bold ${tk.totalLabel}`}>Total</span>
+                      <span className={`text-[28px] font-bold tracking-tight ${tk.totalAmt}`}>{fmt(total)}</span>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* Receipt */}
+                <Card tk={tk}>
+                  <CardHeader tk={tk} title="Receipt" />
+                  <div className="p-4">
+                    <ReceiptPills
+                      tk={tk}
+                      receiptType={receiptType}
+                      onSelect={setReceiptType}
+                      receiptContact={receiptContact}
+                      onContactChange={setReceiptContact}
+                    />
+                  </div>
+                </Card>
+
+                {/* Charge CTA */}
+                <div className="space-y-3 pb-2">
+                  {intentError && <ErrorBanner msg={intentError} />}
+                  <button
+                    onClick={startCheckout}
+                    disabled={items.length === 0 || loadingIntent || total <= 0}
+                    className={`w-full h-16 rounded-2xl text-white text-[17px] font-bold flex items-center justify-center gap-3
+                      transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed ${tk.ctaPrimary}`}
+                  >
+                    {loadingIntent ? (
+                      <>
+                        <Spinner />
+                        Preparing…
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
+                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                        Charge {fmt(total)}
+                      </>
+                    )}
+                  </button>
+                  {items.length === 0 && (
+                    <p className={`text-center text-[12px] ${tk.mutedText}`}>
+                      Add at least one item to continue
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Sticky bottom bar: mobile/tablet only */}
-      <StickyBottomBar
-        tk={tk}
-        total={total}
-        itemCount={items.length}
-        loadingIntent={loadingIntent}
-        onCharge={startCheckout}
-      />
-    </div>
-            </AuthGuard>
+        {/* Sticky bottom bar: mobile/tablet only */}
+        <StickyBottomBar
+          tk={tk}
+          total={total}
+          itemCount={items.length}
+          loadingIntent={loadingIntent}
+          onCharge={startCheckout}
+        />
+      </div>
+    </AuthGuard>
   );
 }
