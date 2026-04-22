@@ -8,6 +8,7 @@ import {
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js';
+import AuthGuard from '@/app/components/AuthGuard'
 
 // ── Stripe singleton ──────────────────────────────────────────────────────────
 const stripePromise = loadStripe(
@@ -626,6 +627,7 @@ const [dark, setDark] = useState(true);
         <div className="w-full max-w-sm">
           <Card tk={tk} className="mb-4">
             <div className="h-1.5 bg-gradient-to-r from-emerald-400 to-teal-400" />
+                <AuthGuard>
             <div className="p-8 text-center">
               <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5 border-2 ${tk.successIconBg}`}>
                 <svg className="w-8 h-8 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1092,5 +1094,6 @@ const [dark, setDark] = useState(true);
         onCharge={startCheckout}
       />
     </div>
+            </AuthGuard>
   );
 }
