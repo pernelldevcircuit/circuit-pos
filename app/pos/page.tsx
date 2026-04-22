@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef, useEffect, FormEvent } from 'react';
+import { useState, useMemo, useEffect, FormEvent } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
@@ -14,17 +14,63 @@ const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ""
 );
 
-const stripeAppearance = {
-  theme: "night" as const,
-  variables: {
-    colorPrimary: "#2563eb",
-    colorBackground: "#0d1117",
-    colorText: "#e2e8f0",
-    colorDanger: "#f87171",
-    fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
-    borderRadius: "6px",
-  },
-};
+function buildStripeAppearance(dark: boolean) {
+  return {
+    theme: (dark ? "night" : "flat") as "night" | "flat",
+    variables: {
+      colorPrimary: dark ? "#60a5fa" : "#1d4ed8",
+      colorBackground: dark ? "#1e2530" : "#ffffff",
+      colorText: dark ? "#f1f5f9" : "#111827",
+      colorDanger: dark ? "#f87171" : "#dc2626",
+      fontFamily: "'DM Sans', system-ui, sans-serif",
+      borderRadius: "10px",
+      spacingUnit: "5px",
+    },
+    rules: dark
+      ? {
+          ".Input": {
+            border: "1.5px solid #334155",
+            boxShadow: "none",
+            padding: "14px 16px",
+            fontSize: "15px",
+            backgroundColor: "#0f1623",
+            color: "#f1f5f9",
+          },
+          ".Input:focus": {
+            border: "1.5px solid #60a5fa",
+            boxShadow: "0 0 0 3px rgba(96,165,250,0.15)",
+          },
+          ".Label": {
+            fontSize: "11px",
+            fontWeight: "600",
+            textTransform: "uppercase" as const,
+            letterSpacing: "0.08em",
+            color: "#94a3b8",
+            marginBottom: "6px",
+          },
+        }
+      : {
+          ".Input": {
+            border: "1.5px solid #e5e7eb",
+            boxShadow: "none",
+            padding: "14px 16px",
+            fontSize: "15px",
+          },
+          ".Input:focus": {
+            border: "1.5px solid #1d4ed8",
+            boxShadow: "0 0 0 3px rgba(29,78,216,0.12)",
+          },
+          ".Label": {
+            fontSize: "11px",
+            fontWeight: "600",
+            textTransform: "uppercase" as const,
+            letterSpacing: "0.08em",
+            color: "#6b7280",
+            marginBottom: "6px",
+          },
+        },
+  };
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type LineItem = {
@@ -54,11 +100,7 @@ type TransactionResult = {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const fmt = (n: number) =>
-  n.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-  });
+  n.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2 });
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
@@ -66,46 +108,343 @@ function calcProcessingFee(total: number) {
   return total * 0.029 + 0.3;
 }
 
-// ── Shared UI primitives ──────────────────────────────────────────────────────
-const inputCls =
-  "w-full bg-[#0d1117] border border-[#1e2d45] rounded-md px-4 py-3.5 text-slate-100 text-sm " +
-  "placeholder-slate-600 outline-none transition-all duration-150 font-mono " +
-  "focus:ring-2 focus:ring-blue-500/70 focus:border-blue-500/50 hover:border-[#2a3f5f]";
+// ── Theme token maps ──────────────────────────────────────────────────────────
+// All class strings are full literals so Tailwind JIT preserves them.
+const LIGHT = {
+  page:            "bg-gray-50 text-gray-900",
+  header:          "bg-white border-gray-100",
+  // FIX #1: was "border-gray-150" — not a valid Tailwind step; replaced with border-gray-200
+  card:            "bg-white border-gray-200 shadow-sm",
+  cardHdr:         "border-gray-100",
+  cardHdrTxt:      "text-gray-400",
+  input:           "bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:ring-blue-700/10 focus:border-blue-700",
+  label:           "text-gray-500",
+  rowBorder:       "border-gray-100",
+  subtleText:      "text-gray-500",
+  mutedText:       "text-gray-300",
+  itemBadge:       "bg-gray-100 text-gray-400",
+  emptyBg:         "bg-gray-100",
+  removeBtn:       "bg-red-50 text-red-400 hover:bg-red-100 active:bg-red-200",
+  totalLabel:      "text-gray-900",
+  totalAmt:        "text-blue-700",
+  pillActive:      "bg-blue-700 border-blue-700 text-white shadow-md shadow-blue-700/20",
+  pillInactive:    "bg-white border-gray-200 text-gray-600 hover:border-gray-300 active:bg-gray-50",
+  tapCard:         "bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-100",
+  tapIcon:         "bg-blue-700",
+  tapBadge:        "text-blue-700 bg-blue-100",
+  tapTitle:        "text-gray-900",
+  tapBody:         "text-gray-500",
+  tapSub:          "text-gray-700",
+  tapDivider:      "border-blue-100",
+  tapFooter:       "text-blue-600",
+  stickyPanel:     "bg-white border-gray-200",
+  stickyTotal:     "text-blue-700",
+  stickyLabel:     "text-gray-500",
+  ctaPrimary:      "bg-blue-700 hover:bg-blue-600 active:bg-blue-800 shadow-xl shadow-blue-700/25",
+  ctaPrimaryMob:   "bg-blue-700 hover:bg-blue-600 active:bg-blue-800 shadow-lg shadow-blue-700/25",
+  cancelBtn:       "border-gray-200 text-gray-600 hover:bg-gray-50 active:bg-gray-100",
+  addItemBtn:      "bg-gray-900 hover:bg-gray-800 active:bg-gray-950 text-white",
+  backBtn:         "text-blue-700",
+  merchantInput:   "bg-gray-50 border-gray-200 text-gray-700 placeholder-gray-400 focus:ring-blue-700/10 focus:border-blue-700",
+  summaryFooterBg: "bg-gray-50 border-gray-100",
+  successTitle:    "text-gray-900",
+  successIconBg:   "bg-emerald-50 border-emerald-200",
+  successTotalColor: "text-gray-900",
+};
 
-const labelCls =
-  "block text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em] mb-2";
+const DARK = {
+  page:            "bg-[#0b0f18] text-slate-100",
+  header:          "bg-[#111827] border-slate-700/60",
+  card:            "bg-[#161d2b] border-slate-700/50 shadow-none",
+  cardHdr:         "border-slate-700/50",
+  cardHdrTxt:      "text-slate-500",
+  input:           "bg-[#0f1623] border-slate-600 text-slate-100 placeholder-slate-600 focus:ring-blue-400/15 focus:border-blue-400",
+  label:           "text-slate-400",
+  rowBorder:       "border-slate-700/40",
+  subtleText:      "text-slate-400",
+  mutedText:       "text-slate-600",
+  itemBadge:       "bg-slate-700 text-slate-400",
+  emptyBg:         "bg-slate-800",
+  removeBtn:       "bg-red-900/30 text-red-400 hover:bg-red-900/60 active:bg-red-900/80",
+  totalLabel:      "text-slate-100",
+  totalAmt:        "text-blue-400",
+  pillActive:      "bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-900/30",
+  pillInactive:    "bg-[#0f1623] border-slate-600 text-slate-400 hover:border-slate-500 active:bg-slate-800",
+  tapCard:         "bg-[#111d35] border-blue-800/50",
+  tapIcon:         "bg-blue-600",
+  tapBadge:        "text-blue-300 bg-blue-900/50",
+  tapTitle:        "text-slate-100",
+  tapBody:         "text-slate-400",
+  tapSub:          "text-slate-200",
+  tapDivider:      "border-blue-800/40",
+  tapFooter:       "text-blue-400",
+  stickyPanel:     "bg-[#111827] border-slate-700/60",
+  stickyTotal:     "text-blue-400",
+  stickyLabel:     "text-slate-400",
+  ctaPrimary:      "bg-blue-600 hover:bg-blue-500 active:bg-blue-700 shadow-xl shadow-blue-900/40",
+  ctaPrimaryMob:   "bg-blue-600 hover:bg-blue-500 active:bg-blue-700 shadow-lg shadow-blue-900/40",
+  cancelBtn:       "border-slate-600 text-slate-300 hover:bg-slate-800 active:bg-slate-700",
+  addItemBtn:      "bg-slate-700 hover:bg-slate-600 active:bg-slate-800 text-slate-100",
+  backBtn:         "text-blue-400",
+  merchantInput:   "bg-slate-800 border-slate-600 text-slate-200 placeholder-slate-600 focus:ring-blue-400/10 focus:border-blue-400",
+  summaryFooterBg: "bg-[#0f1623] border-slate-700/50",
+  successTitle:    "text-slate-100",
+  successIconBg:   "bg-emerald-900/30 border-emerald-700",
+  successTotalColor: "text-slate-100",
+};
 
-function FieldLabel({ children }: { children: React.ReactNode }) {
-  return <label className={labelCls}>{children}</label>;
+type Tokens = typeof LIGHT;
+
+// ── Receipt icon helpers ──────────────────────────────────────────────────────
+const receiptIcons: Record<string, React.ReactNode> = {
+  none: (
+    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  ),
+  print: (
+    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a1 1 0 001-1v-4H9v4a1 1 0 001 1zm2-13V3H9v4" />
+    </svg>
+  ),
+  email: (
+    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+    </svg>
+  ),
+  sms: (
+    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+        d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+    </svg>
+  ),
+};
+
+const receiptLabels: Record<string, string> = {
+  none:  "No Receipt",
+  print: "Print",
+  email: "Email",
+  sms:   "Text / SMS",
+};
+
+// ── Spinner ───────────────────────────────────────────────────────────────────
+function Spinner() {
+  return (
+    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z" />
+    </svg>
+  );
 }
 
-function ErrorMsg({ msg }: { msg: string }) {
-  return msg ? (
-    <div className="flex items-center gap-2.5 px-4 py-3 rounded-md bg-red-500/8 border border-red-500/25 text-red-400 text-sm font-mono">
-      <span className="text-base shrink-0">⚠</span>
+// ── Theme Toggle ──────────────────────────────────────────────────────────────
+function ThemeToggle({ dark, onToggle }: { dark: boolean; onToggle: () => void }) {
+  return (
+    <button
+      onClick={onToggle}
+      aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
+      className={`relative w-[52px] h-[28px] rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 shrink-0
+        ${dark
+          ? "bg-blue-600 focus:ring-blue-500 focus:ring-offset-slate-900"
+          : "bg-gray-200 focus:ring-blue-700 focus:ring-offset-white"
+        }`}
+    >
+      <span className="absolute left-1.5 top-1/2 -translate-y-1/2 text-[11px] leading-none select-none pointer-events-none">🌙</span>
+      <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[11px] leading-none select-none pointer-events-none">☀️</span>
+      <span
+        className={`absolute top-[3px] w-[22px] h-[22px] rounded-full bg-white shadow-sm transition-all duration-300
+          ${dark ? "left-[26px]" : "left-[3px]"}`}
+      />
+    </button>
+  );
+}
+
+// ── Error Banner ──────────────────────────────────────────────────────────────
+function ErrorBanner({ msg }: { msg: string }) {
+  if (!msg) return null;
+  return (
+    <div className="flex items-start gap-3 px-4 py-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
+      <svg className="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" strokeWidth="2" />
+        <path strokeLinecap="round" d="M12 8v4M12 16h.01" strokeWidth="2.5" />
+      </svg>
       {msg}
     </div>
-  ) : null;
+  );
 }
 
-// ── PaymentForm (inside context) ───────────────────────────────
+// ── Card wrapper ──────────────────────────────────────────────────────────────
+function Card({ tk, children, className = "" }: { tk: Tokens; children: React.ReactNode; className?: string }) {
+  return (
+    <div className={`rounded-2xl border overflow-hidden ${tk.card} ${className}`}>
+      {children}
+    </div>
+  );
+}
+
+function CardHeader({ tk, title, right }: { tk: Tokens; title: string; right?: React.ReactNode }) {
+  return (
+    <div className={`px-5 py-4 flex items-center justify-between border-b ${tk.cardHdr}`}>
+      <span className={`text-[11px] font-bold uppercase tracking-[0.1em] ${tk.cardHdrTxt}`}>{title}</span>
+      {right}
+    </div>
+  );
+}
+
+// ── Receipt Pills ─────────────────────────────────────────────────────────────
+function ReceiptPills({
+  tk, receiptType, onSelect, receiptContact, onContactChange,
+}: {
+  tk: Tokens;
+  receiptType: "print" | "email" | "sms" | "none";
+  onSelect: (t: "print" | "email" | "sms" | "none") => void;
+  receiptContact: string;
+  onContactChange: (v: string) => void;
+}) {
+  // FIX #4: added htmlFor / id pairing on the contact input label
+  const labelCls = `block text-[11px] font-semibold uppercase tracking-[0.08em] mb-2 ${tk.label}`;
+  const inputCls = `w-full rounded-xl px-4 py-4 text-[15px] border-[1.5px] outline-none transition-all duration-150 min-h-[52px] focus:ring-[3px] ${tk.input}`;
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-2.5">
+        {(["none", "print", "email", "sms"] as const).map(type => (
+          <button
+            key={type}
+            onClick={() => onSelect(type)}
+            className={`flex items-center gap-2 px-3.5 py-3.5 rounded-xl text-[13px] font-semibold transition-all duration-150 border-[1.5px]
+              ${receiptType === type ? tk.pillActive : tk.pillInactive}`}
+          >
+            {receiptIcons[type]}
+            {receiptLabels[type]}
+          </button>
+        ))}
+      </div>
+      {(receiptType === "email" || receiptType === "sms") && (
+        <div>
+          {/* FIX #4: htmlFor matches input id */}
+          <label htmlFor="receipt-contact" className={labelCls}>
+            {receiptType === "email" ? "Email Address" : "Phone Number"}
+          </label>
+          <input
+            id="receipt-contact"
+            type={receiptType === "email" ? "email" : "tel"}
+            inputMode={receiptType === "email" ? "email" : "tel"}
+            value={receiptContact}
+            onChange={e => onContactChange(e.target.value)}
+            placeholder={receiptType === "email" ? "customer@email.com" : "+1 (555) 000-0000"}
+            className={inputCls}
+            autoComplete={receiptType === "email" ? "email" : "tel"}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Tap to Pay Card ───────────────────────────────────────────────────────────
+function TapToPayCard({ tk }: { tk: Tokens }) {
+  return (
+    <div className={`rounded-2xl border p-5 ${tk.tapCard}`}>
+      <div className="flex items-start gap-4">
+        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${tk.tapIcon}`}>
+          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M8.111 16.404a5.5 5.5 0 010-8.808M12 20a9 9 0 000-16M3.5 12a10.5 10.5 0 0117 0" />
+          </svg>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <span className={`text-[15px] font-semibold ${tk.tapTitle}`}>Tap to Pay</span>
+            <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${tk.tapBadge}`}>
+              Mobile Only
+            </span>
+          </div>
+          <p className={`text-[13px] leading-relaxed ${tk.tapBody}`}>
+            Available in{" "}
+            <span className={`font-semibold ${tk.tapSub}`}>Circuit Mobile</span>.
+            {" "}Requires Circuit app on a supported iPhone.
+          </p>
+        </div>
+      </div>
+      <div className={`mt-4 pt-4 border-t ${tk.tapDivider}`}>
+        {/* FIX #7: was &amp; which renders as literal "&amp;" in JSX — replaced with plain & */}
+        <p className={`text-[12px] font-medium ${tk.tapFooter}`}>
+          Download the Circuit app → accept contactless cards, Apple Pay & Google Pay directly.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ── Sticky Bottom Bar (mobile / tablet) ──────────────────────────────────────
+function StickyBottomBar({
+  tk, total, itemCount, loadingIntent, onCharge,
+}: {
+  tk: Tokens;
+  total: number;
+  itemCount: number;
+  loadingIntent: boolean;
+  onCharge: () => void;
+}) {
+  if (itemCount === 0) return null;
+  return (
+    // FIX #5: was "py-3" (sets both top+bottom padding); changed to "pt-3" so the
+    // inline paddingBottom from safe-area-inset is the sole bottom padding source.
+    <div
+      className={`fixed bottom-0 left-0 right-0 z-30 border-t px-4 pt-3 lg:hidden transition-colors duration-300 ${tk.stickyPanel}`}
+      style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}
+    >
+      <div className="flex items-center gap-3 max-w-lg mx-auto">
+        <div className="flex-1 min-w-0">
+          <div className={`text-[11px] font-semibold uppercase tracking-wider ${tk.stickyLabel}`}>
+            {itemCount} item{itemCount !== 1 ? "s" : ""}
+          </div>
+          <div className={`text-[20px] font-bold leading-tight ${tk.stickyTotal}`}>{fmt(total)}</div>
+        </div>
+        <button
+          onClick={onCharge}
+          disabled={loadingIntent || total <= 0}
+          className={`h-12 px-6 rounded-xl text-white text-[15px] font-bold flex items-center gap-2 transition-all duration-150
+            disabled:opacity-30 disabled:cursor-not-allowed ${tk.ctaPrimaryMob}`}
+        >
+          {loadingIntent ? (
+            <Spinner />
+          ) : (
+            <>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
+                  d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+              </svg>
+              Charge
+            </>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Payment Form ──────────────────────────────────────────────────────────────
 interface PaymentFormProps {
   clientSecret: string;
   total: number;
+  tk: Tokens;
   onSuccess: (txnId: string) => void;
   onCancel: () => void;
 }
 
-function PaymentForm({ total, onSuccess, onCancel }: PaymentFormProps) {
-  const stripe = useStripe();
+function PaymentForm({ total, tk, onSuccess, onCancel }: PaymentFormProps) {
+  const stripe   = useStripe();
   const elements = useElements();
-  const [paying, setPaying] = useState(false);
+  const [paying, setPaying]     = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!stripe || !elements) return;
-
     setPaying(true);
     setPayError(null);
 
@@ -126,43 +465,41 @@ function PaymentForm({ total, onSuccess, onCancel }: PaymentFormProps) {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex flex-col gap-5 p-6 bg-[#0d1117] border border-[#1e2d45] rounded-xl"
-    >
-      {/* Blue accent line at top */}
-      <div className="h-px bg-gradient-to-r from-blue-600 via-blue-400 to-transparent -mx-6 -mt-6 mb-1 rounded-t-xl" />
-
-      <PaymentElement />
-
-      {payError && (
-        <div className="flex items-center gap-2.5 px-4 py-3 rounded-md bg-red-500/8 border border-red-500/25 text-red-400 text-sm font-mono">
-          <span className="text-base shrink-0">⚠</span>
-          {payError}
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <div className={`rounded-2xl border overflow-hidden ${tk.card}`}>
+        <div className={`px-5 py-4 border-b ${tk.cardHdr}`}>
+          <span className={`text-[11px] font-bold uppercase tracking-[0.1em] ${tk.cardHdrTxt}`}>Card Details</span>
         </div>
-      )}
+        <div className="p-5">
+          <PaymentElement options={{ layout: "tabs" }} />
+        </div>
+      </div>
 
-      <div className="flex gap-3 pt-1">
+      {payError && <ErrorBanner msg={payError} />}
+
+      <div className="flex gap-3">
         <button
           type="button"
           onClick={onCancel}
           disabled={paying}
-          className="flex-1 px-4 py-3.5 rounded-lg border border-[#1e2d45] text-slate-400 text-sm font-semibold hover:bg-[#131d2e] hover:text-slate-200 hover:border-[#2a3f5f] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150"
+          className={`flex-1 h-14 rounded-xl border-[1.5px] text-[15px] font-semibold transition-all duration-150
+            disabled:opacity-40 disabled:cursor-not-allowed ${tk.cancelBtn}`}
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={!stripe || paying}
-          className="flex-[2] px-4 py-3.5 rounded-lg bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-sm font-bold tracking-wide disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 shadow-lg shadow-blue-900/40"
+          className={`flex-[2] h-14 rounded-xl text-white text-[15px] font-bold transition-all duration-150
+            disabled:opacity-40 disabled:cursor-not-allowed ${tk.ctaPrimary}`}
         >
           {paying ? (
-            <span className="flex items-center justify-center gap-2">
-              <span className="inline-block animate-spin">⏳</span>
+            <span className="flex items-center justify-center gap-2.5">
+              <Spinner />
               Processing…
             </span>
           ) : (
-            `Complete Payment · ${fmt(total)}`
+            `Charge ${fmt(total)}`
           )}
         </button>
       </div>
@@ -170,45 +507,77 @@ function PaymentForm({ total, onSuccess, onCancel }: PaymentFormProps) {
   );
 }
 
-// ── Main POS Component ─────────────────────────────────────────────────────────
+// ── Main POS Component ────────────────────────────────────────────────────────
 export default function CircuitPOS() {
-  const [merchantId, setMerchantId] = useState("");
-  const [items, setItems] = useState<LineItem[]>([]);
-  const [itemName, setItemName] = useState("");
-  const [itemQty, setItemQty] = useState("1");
-  const [itemPrice, setItemPrice] = useState("");
-  const [taxRate, setTaxRate] = useState("8.5");
-  const [addError, setAddError] = useState("");
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [loadingIntent, setLoadingIntent] = useState(false);
-  const [intentError, setIntentError] = useState("");
-  const [result, setResult] = useState<TransactionResult | null>(null);
-  const [receiptType, setReceiptType] = useState<"print" | "email" | "sms" | "none">("none");
-  const [receiptContact, setReceiptContact] = useState("");
+  // ── Theme ──────────────────────────────────────────────────────────────────
+  // FIX #2: Initialize to false unconditionally (safe SSR default) to prevent
+  // hydration mismatch. The real system preference is read in useEffect below.
+  const [dark, setDark]               = useState(false);
+  const [userOverride, setUserOverride] = useState(false);
 
-  const subtotal = useMemo(() => items.reduce((s, i) => s + i.quantity * i.unitPrice, 0), [items]);
-  const tax = useMemo(() => subtotal * (parseFloat(taxRate) || 0) / 100, [subtotal, taxRate]);
-  const total = useMemo(() => subtotal + tax, [subtotal, tax]);
+  useEffect(() => {
+    // FIX #2 continued: sync to system preference on first mount, then listen
+    // for changes — but stop listening once the user has manually toggled.
+    if (userOverride) return;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    setDark(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setDark(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, [userOverride]);
+
+  function toggleTheme() {
+    setDark(d => !d);
+    setUserOverride(true);
+  }
+
+  const tk: Tokens = dark ? DARK : LIGHT;
+
+  // ── POS state ──────────────────────────────────────────────────────────────
+  const [merchantId, setMerchantId]         = useState("");
+  const [items, setItems]                   = useState<LineItem[]>([]);
+  const [itemName, setItemName]             = useState("");
+  const [itemQty, setItemQty]               = useState("1");
+  const [itemPrice, setItemPrice]           = useState("");
+  const [taxRate, setTaxRate]               = useState("8.5");
+  const [addError, setAddError]             = useState("");
+  const [clientSecret, setClientSecret]     = useState<string | null>(null);
+  const [loadingIntent, setLoadingIntent]   = useState(false);
+  const [intentError, setIntentError]       = useState("");
+  const [result, setResult]                 = useState<TransactionResult | null>(null);
+  const [receiptType, setReceiptType]       = useState<"print" | "email" | "sms" | "none">("none");
+  const [receiptContact, setReceiptContact] = useState("");
+  const [showPayment, setShowPayment]       = useState(false);
+
+  const subtotal      = useMemo(() => items.reduce((s, i) => s + i.quantity * i.unitPrice, 0), [items]);
+  const tax           = useMemo(() => subtotal * (parseFloat(taxRate) || 0) / 100, [subtotal, taxRate]);
+  const total         = useMemo(() => subtotal + tax, [subtotal, tax]);
   const processingFee = useMemo(() => calcProcessingFee(total), [total]);
 
+  const stripeAppearance = useMemo(() => buildStripeAppearance(dark), [dark]);
+
+  // Derived class strings (depend on tk, recomputed on theme change)
+  const inputCls = `w-full rounded-xl px-4 py-4 text-[15px] border-[1.5px] outline-none transition-all duration-150 min-h-[52px] focus:ring-[3px] ${tk.input}`;
+  const labelCls = `block text-[11px] font-semibold uppercase tracking-[0.08em] mb-2 ${tk.label}`;
+
+  // ── Item actions ───────────────────────────────────────────────────────────
   function addItem() {
     setAddError("");
-    const name = itemName.trim();
-    const qty = parseInt(itemQty, 10);
+    const name  = itemName.trim();
+    const qty   = parseInt(itemQty, 10);
     const price = parseFloat(itemPrice);
-    if (!name) return setAddError("Item name is required.");
-    if (!qty || qty < 1) return setAddError("Quantity must be at least 1.");
+    if (!name)                      return setAddError("Item name is required.");
+    if (!qty || qty < 1)            return setAddError("Quantity must be at least 1.");
     if (isNaN(price) || price <= 0) return setAddError("Enter a valid price greater than $0.");
     setItems(prev => [...prev, { id: uid(), name, quantity: qty, unitPrice: price }]);
-    setItemName("");
-    setItemQty("1");
-    setItemPrice("");
+    setItemName(""); setItemQty("1"); setItemPrice("");
   }
 
   function removeItem(id: string) {
     setItems(prev => prev.filter(i => i.id !== id));
   }
 
+  // ── Checkout ───────────────────────────────────────────────────────────────
   async function startCheckout() {
     setIntentError("");
     setLoadingIntent(true);
@@ -221,6 +590,7 @@ export default function CircuitPOS() {
       if (!res.ok) throw new Error("Failed to create payment intent.");
       const { clientSecret } = await res.json();
       setClientSecret(clientSecret);
+      setShowPayment(true);
     } catch (e: any) {
       setIntentError(e.message ?? "Something went wrong.");
     } finally {
@@ -230,342 +600,527 @@ export default function CircuitPOS() {
 
   function handleSuccess(txnId: string) {
     const receipt: ReceiptDelivery =
-      receiptType === "print" ? { type: "print" } :
-      receiptType === "email" ? { type: "email", contact: receiptContact } :
-      receiptType === "sms" ? { type: "sms", contact: receiptContact } :
+      receiptType === "print"  ? { type: "print" } :
+      receiptType === "email"  ? { type: "email", contact: receiptContact } :
+      receiptType === "sms"    ? { type: "sms",   contact: receiptContact } :
       { type: "none" };
 
     setResult({
       transactionId: txnId,
-      amount: total,
+      amount:        total,
       items,
       subtotal,
-      taxRate: parseFloat(taxRate) || 0,
-      taxAmount: tax,
+      taxRate:       parseFloat(taxRate) || 0,
+      taxAmount:     tax,
       total,
       processingFee,
       receipt,
     });
     setClientSecret(null);
+    setShowPayment(false);
   }
 
   function reset() {
-    setItems([]);
-    setResult(null);
-    setClientSecret(null);
-    setReceiptType("none");
-    setReceiptContact("");
-    setIntentError("");
-    setAddError("");
+    setItems([]); setResult(null); setClientSecret(null); setShowPayment(false);
+    setReceiptType("none"); setReceiptContact(""); setIntentError(""); setAddError("");
   }
 
-  // ── Success View ─────────────────────────────────────────────
+  // FIX #8: <style> tags with @import are spec-invalid when injected into <body>.
+  // Font loading has been moved to app/layout.tsx + globals.css (see note below).
+  // The fontStyle const and all <style>{fontStyle}</style> tags have been removed.
+  // Add to app/layout.tsx <head>:
+  //   <link rel="preconnect" href="https://fonts.googleapis.com" />
+  //   <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+  //   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  // Add to globals.css:
+  //   body { font-family: 'DM Sans', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // ── SUCCESS VIEW ─────────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════
   if (result) {
     return (
-      <div className="min-h-screen bg-[#080c12] font-mono flex items-center justify-center p-6">
-        <div className="w-full max-w-md">
-          {/* Success card */}
-          <div className="bg-[#0d1117] border border-[#1e2d45] rounded-2xl overflow-hidden">
-            {/* Top accent */}
-            <div className="h-1 bg-gradient-to-r from-blue-600 to-cyan-400" />
-
-            <div className="p-8">
-              {/* Icon + status */}
-              <div className="flex flex-col items-center text-center mb-8">
-                <div className="w-16 h-16 rounded-full bg-blue-600/15 border border-blue-500/30 flex items-center justify-center mb-4">
-                  <span className="text-2xl">✓</span>
+      <div className={`min-h-screen flex items-center justify-center p-5 transition-colors duration-300 ${tk.page}`}>
+        <div className="w-full max-w-sm">
+          <Card tk={tk} className="mb-4">
+            <div className="h-1.5 bg-gradient-to-r from-emerald-400 to-teal-400" />
+            <div className="p-8 text-center">
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5 border-2 ${tk.successIconBg}`}>
+                <svg className="w-8 h-8 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h1 className={`text-[22px] font-bold mb-1 ${tk.successTitle}`}>Payment Accepted</h1>
+              <p className={`text-[14px] ${tk.subtleText}`}>Transaction complete</p>
+              <div className={`mt-6 py-5 border-t border-b ${tk.rowBorder}`}>
+                <div className={`text-[13px] font-medium mb-1 ${tk.subtleText}`}>Total Charged</div>
+                <div className={`text-[40px] font-bold tracking-tight leading-none ${tk.successTotalColor}`}>
+                  {fmt(result.total)}
                 </div>
-                <h2 className="text-xl font-bold text-slate-100 tracking-tight">Payment Confirmed</h2>
-                <p className="text-slate-500 text-sm mt-1">Transaction processed successfully</p>
               </div>
+            </div>
+          </Card>
 
-              {/* Amount */}
-              <div className="text-center mb-8">
-                <div className="text-4xl font-bold text-blue-400 tracking-tight">{fmt(result.total)}</div>
-              </div>
+          <Card tk={tk} className="mb-4">
+            <CardHeader tk={tk} title="Transaction Details" />
+            <div className="px-5 py-1">
+              {[
+                ["ID",             result.transactionId.slice(0, 18) + "…"],
+                ["Subtotal",       fmt(result.subtotal)],
+                [`Tax (${result.taxRate}%)`, fmt(result.taxAmount)],
+                ["Processing Fee", fmt(result.processingFee)],
+                ["Receipt",
+                  result.receipt.type === "none"  ? "None"  :
+                  result.receipt.type === "print" ? "Print" :
+                  `${result.receipt.type.toUpperCase()} · ${'contact' in result.receipt ? result.receipt.contact : ''}`
+                ],
+              ].map(([label, value], i, arr) => (
+                <div
+                  key={label}
+                  className={`flex justify-between items-center py-4 ${i < arr.length - 1 ? `border-b ${tk.rowBorder}` : ""}`}
+                >
+                  <span className={`text-[13px] ${tk.subtleText}`}>{label}</span>
+                  <span className={`text-[13px] font-semibold text-right max-w-[200px] truncate ${tk.successTitle}`}>{value}</span>
+                </div>
+              ))}
+            </div>
+          </Card>
 
-              {/* Details grid */}
-              <div className="space-y-1 mb-8">
-                {[
-                  ["Transaction ID", result.transactionId.slice(0, 20) + "…"],
-                  ["Subtotal", fmt(result.subtotal)],
-                  [`Tax (${result.taxRate}%)`, fmt(result.taxAmount)],
-                  ["Processing Fee", fmt(result.processingFee)],
-                  ["Receipt", result.receipt.type === "none" ? "None" :
-                    result.receipt.type === "print" ? "Print" :
-                    `${result.receipt.type.toUpperCase()} · ${'contact' in result.receipt ? result.receipt.contact : ''}`],
-                ].map(([label, value]) => (
-                  <div key={label} className="flex justify-between items-center py-2.5 border-b border-[#131d2e] last:border-0">
-                    <span className="text-[11px] text-slate-500 uppercase tracking-widest">{label}</span>
-                    <span className="text-sm text-slate-300 font-mono">{value}</span>
+          {result.items.length > 0 && (
+            <Card tk={tk} className="mb-5">
+              <CardHeader tk={tk} title={`Items · ${result.items.length}`} />
+              <div className="px-5 py-1">
+                {result.items.map((item, i) => (
+                  <div
+                    key={item.id}
+                    className={`flex justify-between items-center py-4 ${i < result.items.length - 1 ? `border-b ${tk.rowBorder}` : ""}`}
+                  >
+                    <div>
+                      <div className={`text-[14px] font-medium ${tk.successTitle}`}>{item.name}</div>
+                      <div className={`text-[12px] mt-0.5 ${tk.subtleText}`}>Qty {item.quantity} · {fmt(item.unitPrice)} ea.</div>
+                    </div>
+                    <span className={`text-[14px] font-semibold ${tk.successTitle}`}>
+                      {fmt(item.quantity * item.unitPrice)}
+                    </span>
                   </div>
                 ))}
               </div>
+            </Card>
+          )}
 
-              {/* Items */}
-              <div className="mb-8">
-                <div className={labelCls}>Items ({result.items.length})</div>
-                <div className="space-y-1.5">
-                  {result.items.map(item => (
-                    <div key={item.id} className="flex justify-between items-center py-2 px-3 bg-[#0a0f18] rounded-md">
-                      <span className="text-sm text-slate-300">{item.name} <span className="text-slate-600">×{item.quantity}</span></span>
-                      <span className="text-sm text-slate-400">{fmt(item.quantity * item.unitPrice)}</span>
+          <button
+            onClick={reset}
+            className={`w-full h-14 rounded-2xl text-white text-[16px] font-bold transition-all duration-150 ${tk.ctaPrimary}`}
+          >
+            New Transaction
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // ── PAYMENT / CHECKOUT VIEW ───────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════
+  if (showPayment && clientSecret) {
+    return (
+      <div className={`min-h-screen flex flex-col transition-colors duration-300 ${tk.page}`}>
+        <header className={`border-b px-5 h-16 flex items-center justify-between sticky top-0 z-10 transition-colors duration-300 ${tk.header}`}>
+          <button
+            onClick={() => { setShowPayment(false); setClientSecret(null); }}
+            className={`flex items-center gap-2 font-semibold text-[15px] h-12 px-1 ${tk.backBtn}`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back
+          </button>
+          <span className={`text-[15px] font-bold ${tk.totalLabel}`}>Checkout</span>
+          <ThemeToggle dark={dark} onToggle={toggleTheme} />
+        </header>
+
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-lg mx-auto px-5 py-6 space-y-5">
+            {/* Order recap */}
+            <Card tk={tk}>
+              <CardHeader tk={tk} title="Order Summary" />
+              <div className="px-5 py-1">
+                {items.map((item, i) => (
+                  <div
+                    key={item.id}
+                    className={`flex justify-between items-center py-3.5 ${i < items.length - 1 ? `border-b ${tk.rowBorder}` : ""}`}
+                  >
+                    <div>
+                      <div className={`text-[14px] font-medium ${tk.totalLabel}`}>{item.name}</div>
+                      <div className={`text-[12px] mt-0.5 ${tk.subtleText}`}>×{item.quantity}</div>
                     </div>
-                  ))}
+                    <span className={`text-[14px] font-semibold ${tk.totalLabel}`}>
+                      {fmt(item.quantity * item.unitPrice)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className={`px-5 pt-3 pb-5 border-t space-y-2 ${tk.summaryFooterBg}`}>
+                {[
+                  ["Subtotal", fmt(subtotal)],
+                  [`Tax (${parseFloat(taxRate) || 0}%)`, fmt(tax)],
+                ].map(([l, v]) => (
+                  <div key={l} className="flex justify-between text-[13px]">
+                    <span className={tk.subtleText}>{l}</span>
+                    <span className={`font-medium ${tk.subtleText}`}>{v}</span>
+                  </div>
+                ))}
+                <div className={`flex justify-between text-[16px] font-bold pt-2 border-t mt-1 ${tk.rowBorder} ${tk.totalLabel}`}>
+                  <span>Total</span>
+                  <span>{fmt(total)}</span>
                 </div>
               </div>
+            </Card>
 
-              <button
-                onClick={reset}
-                className="w-full py-3.5 rounded-lg bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-sm font-bold tracking-wide transition-all duration-150 shadow-lg shadow-blue-900/30"
-              >
-                New Transaction
-              </button>
-            </div>
+            <Elements stripe={stripePromise} options={{ clientSecret, appearance: stripeAppearance }}>
+              <PaymentForm
+                clientSecret={clientSecret}
+                total={total}
+                tk={tk}
+                onSuccess={handleSuccess}
+                onCancel={() => { setShowPayment(false); setClientSecret(null); }}
+              />
+            </Elements>
           </div>
         </div>
       </div>
     );
   }
 
-  // ── Main POS View ─────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════
+  // ── MAIN POS VIEW ────────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════
   return (
-    <div className="min-h-screen bg-[#080c12] font-mono text-slate-200">
-      {/* Header */}
-      <header className="border-b border-[#1e2d45] bg-[#0a0f18]/80 backdrop-blur-sm sticky top-0 z-20">
-        <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-md bg-blue-600 flex items-center justify-center">
-              <span className="text-xs font-black text-white">C</span>
+    <div className={`min-h-screen transition-colors duration-300 ${tk.page}`}>
+      {/* ── Header ── */}
+      <header className={`border-b sticky top-0 z-20 transition-colors duration-300 ${tk.header}`}>
+        <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
+          {/* Brand */}
+          <div className="flex items-center gap-3 shrink-0">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-sm ${tk.tapIcon}`}>
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
             </div>
-            <span className="text-sm font-bold tracking-widest text-slate-200 uppercase">Circuit</span>
-            <span className="text-[10px] text-slate-600 tracking-widest uppercase border border-[#1e2d45] px-2 py-0.5 rounded">POS</span>
+            <div>
+              <div className={`text-[16px] font-bold leading-none ${tk.totalLabel}`}>Circuit</div>
+              <div className={`text-[10px] font-semibold uppercase tracking-widest leading-none mt-0.5 ${tk.subtleText}`}>
+                Point of Sale
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] text-slate-600 uppercase tracking-widest">Merchant</span>
-            <input
-              value={merchantId}
-              onChange={e => setMerchantId(e.target.value)}
-              placeholder="MID-000000"
-              className="bg-[#0d1117] border border-[#1e2d45] rounded px-3 py-1.5 text-xs text-slate-300 placeholder-slate-700 outline-none focus:ring-1 focus:ring-blue-500/60 focus:border-blue-500/40 w-36 transition-all duration-150"
-            />
+
+          {/* Right: merchant input + theme toggle */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              {/* FIX #4: htmlFor added; matches input id below */}
+              <label
+                htmlFor="merchant-id"
+                className={`text-[11px] font-semibold uppercase tracking-wider hidden sm:block ${tk.label}`}
+              >
+                Merchant
+              </label>
+              <input
+                id="merchant-id"
+                value={merchantId}
+                onChange={e => setMerchantId(e.target.value)}
+                placeholder="MID-000000"
+                className={`rounded-xl px-3.5 py-2.5 text-[13px] font-medium border-[1.5px] outline-none w-36 focus:ring-[3px] transition-all duration-150 ${tk.merchantInput}`}
+              />
+            </div>
+            <ThemeToggle dark={dark} onToggle={toggleTheme} />
           </div>
         </div>
       </header>
 
-      <div className="max-w-5xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
+      {/* ── Body: two-col on lg, single col below ── */}
+      <div className="max-w-6xl mx-auto px-4 py-5 lg:py-7">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-5 items-start">
 
-        {/* ── Left column: Add item + Cart ── */}
-        <div className="space-y-5">
+          {/* ── LEFT COLUMN ── */}
+          {/* pb-28 creates clearance for the sticky bottom bar on mobile */}
+          <div className="space-y-4 pb-28 lg:pb-0">
 
-          {/* Add Item Card */}
-          <div className="bg-[#0d1117] border border-[#1e2d45] rounded-xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-[#131d2e] flex items-center gap-3">
-              <div className="w-1.5 h-4 rounded-full bg-blue-500" />
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Add Item</span>
-            </div>
-            <div className="p-6 grid grid-cols-1 sm:grid-cols-[1fr_100px_120px_auto] gap-3 items-end">
-              <div>
-                <FieldLabel>Item Name</FieldLabel>
-                <input
-                  value={itemName}
-                  onChange={e => setItemName(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && addItem()}
-                  placeholder="Product or service"
-                  className={inputCls}
-                />
-              </div>
-              <div>
-                <FieldLabel>Qty</FieldLabel>
-                <input
-                  type="number"
-                  min="1"
-                  value={itemQty}
-                  onChange={e => setItemQty(e.target.value)}
-                  className={inputCls}
-                />
-              </div>
-              <div>
-                <FieldLabel>Unit Price</FieldLabel>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={itemPrice}
-                  onChange={e => setItemPrice(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && addItem()}
-                  placeholder="0.00"
-                  className={inputCls}
-                />
-              </div>
-              <button
-                onClick={addItem}
-                className="h-[46px] px-5 rounded-lg bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-sm font-bold tracking-wide transition-all duration-150 shadow-md shadow-blue-900/30 whitespace-nowrap"
-              >
-                + Add
-              </button>
-            </div>
-            {addError && (
-              <div className="px-6 pb-5">
-                <ErrorMsg msg={addError} />
-              </div>
-            )}
-          </div>
-
-          {/* Cart */}
-          <div className="bg-[#0d1117] border border-[#1e2d45] rounded-xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-[#131d2e] flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-1.5 h-4 rounded-full bg-cyan-500" />
-                <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Cart</span>
-              </div>
-              {items.length > 0 && (
-                <span className="text-[10px] text-blue-400 font-bold bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 rounded-full">
-                  {items.length} item{items.length !== 1 ? "s" : ""}
-                </span>
-              )}
-            </div>
-
-            {items.length === 0 ? (
-              <div className="px-6 py-14 text-center">
-                <div className="w-10 h-10 rounded-xl bg-[#131d2e] flex items-center justify-center mx-auto mb-3">
-                  <span className="text-lg opacity-40">🛒</span>
+            {/* Add Item card */}
+            <Card tk={tk}>
+              <CardHeader tk={tk} title="Add Item" />
+              <div className="p-5 space-y-4">
+                <div>
+                  {/* FIX #4: htmlFor / id pairs on all form labels */}
+                  <label htmlFor="item-name" className={labelCls}>Item Name</label>
+                  <input
+                    id="item-name"
+                    value={itemName}
+                    onChange={e => setItemName(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && addItem()}
+                    placeholder="Product or service description"
+                    className={inputCls}
+                    autoComplete="off"
+                  />
                 </div>
-                <p className="text-slate-600 text-sm">No items added yet</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label htmlFor="item-qty" className={labelCls}>Quantity</label>
+                    <input
+                      id="item-qty"
+                      type="number"
+                      inputMode="numeric"
+                      min="1"
+                      value={itemQty}
+                      onChange={e => setItemQty(e.target.value)}
+                      className={inputCls}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="item-price" className={labelCls}>Unit Price ($)</label>
+                    <input
+                      id="item-price"
+                      type="number"
+                      inputMode="decimal"
+                      min="0"
+                      step="0.01"
+                      value={itemPrice}
+                      onChange={e => setItemPrice(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && addItem()}
+                      placeholder="0.00"
+                      className={inputCls}
+                    />
+                  </div>
+                </div>
+                {addError && <ErrorBanner msg={addError} />}
+                <button
+                  onClick={addItem}
+                  className={`w-full py-3.5 rounded-xl text-[15px] font-semibold transition-all duration-150 flex items-center justify-center gap-2 ${tk.addItemBtn}`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Add to Order
+                </button>
               </div>
-            ) : (
-              <div className="divide-y divide-[#0f1825]">
-                {items.map((item, idx) => (
-                  <div key={item.id} className="px-6 py-4 flex items-center justify-between gap-4 hover:bg-[#0a0f18] transition-colors duration-100 group">
-                    <div className="flex items-center gap-4 min-w-0">
-                      <span className="text-[10px] text-slate-700 w-5 text-right shrink-0 font-bold">{idx + 1}</span>
-                      <div className="min-w-0">
-                        <div className="text-sm text-slate-200 font-medium truncate">{item.name}</div>
-                        <div className="text-[11px] text-slate-600 mt-0.5">{fmt(item.unitPrice)} × {item.quantity}</div>
+            </Card>
+
+            {/* Cart */}
+            <Card tk={tk}>
+              <CardHeader
+                tk={tk}
+                title="Order"
+                right={items.length > 0 ? (
+                  <span className={`text-[12px] font-bold px-2.5 py-1 rounded-full
+                    ${dark ? "text-blue-300 bg-blue-900/40" : "text-blue-700 bg-blue-50"}`}>
+                    {items.length} item{items.length !== 1 ? "s" : ""}
+                  </span>
+                ) : null}
+              />
+              {items.length === 0 ? (
+                <div className="py-16 px-5 text-center">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 ${tk.emptyBg}`}>
+                    <svg className={`w-6 h-6 ${tk.mutedText}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m5-9v9m4-9v9m5-9l2 9" />
+                    </svg>
+                  </div>
+                  <p className={`text-[14px] ${tk.subtleText}`}>No items added yet</p>
+                  <p className={`text-[12px] mt-1 ${tk.mutedText}`}>Use the form above to add items</p>
+                </div>
+              ) : (
+                <div>
+                  {items.map((item, idx) => (
+                    <div
+                      key={item.id}
+                      className={`flex items-center gap-4 px-5 py-4 ${idx < items.length - 1 ? `border-b ${tk.rowBorder}` : ""}`}
+                    >
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold shrink-0 ${tk.itemBadge}`}>
+                        {idx + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className={`text-[15px] font-semibold truncate ${tk.totalLabel}`}>{item.name}</div>
+                        <div className={`text-[12px] mt-0.5 ${tk.subtleText}`}>{fmt(item.unitPrice)} × {item.quantity}</div>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className={`text-[15px] font-bold ${tk.totalLabel}`}>
+                          {fmt(item.quantity * item.unitPrice)}
+                        </span>
+                        <button
+                          onClick={() => removeItem(item.id)}
+                          className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150 ${tk.removeBtn}`}
+                          aria-label={`Remove ${item.name}`}
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 shrink-0">
-                      <span className="text-sm font-bold text-slate-300">{fmt(item.quantity * item.unitPrice)}</span>
-                      <button
-                        onClick={() => removeItem(item.id)}
-                        className="w-7 h-7 rounded-md flex items-center justify-center text-slate-700 hover:text-red-400 hover:bg-red-500/10 transition-all duration-150 opacity-0 group-hover:opacity-100"
-                      >
-                        ✕
-                      </button>
-                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+
+            {/* Tap to Pay info */}
+            <TapToPayCard tk={tk} />
+
+            {/* ── Mobile-only: tax + receipt (above sticky bar) ── */}
+            <div className="lg:hidden space-y-4">
+              <Card tk={tk}>
+                <CardHeader tk={tk} title="Tax Rate" />
+                <div className="p-5">
+                  <div className="relative">
+                    {/* FIX #4: htmlFor / id */}
+                    <label htmlFor="tax-rate-mobile" className="sr-only">Tax Rate</label>
+                    <input
+                      id="tax-rate-mobile"
+                      type="number"
+                      inputMode="decimal"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      value={taxRate}
+                      onChange={e => setTaxRate(e.target.value)}
+                      className={`${inputCls} pr-10`}
+                    />
+                    <span
+                      aria-hidden="true"
+                      className={`absolute right-4 top-1/2 -translate-y-1/2 font-semibold text-[15px] ${tk.subtleText}`}
+                    >
+                      %
+                    </span>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ── Right column: Totals + Checkout ── */}
-        <div className="space-y-5">
-
-          {/* Tax Rate */}
-          <div className="bg-[#0d1117] border border-[#1e2d45] rounded-xl p-5">
-            <FieldLabel>Tax Rate (%)</FieldLabel>
-            <input
-              type="number"
-              min="0"
-              max="100"
-              step="0.1"
-              value={taxRate}
-              onChange={e => setTaxRate(e.target.value)}
-              className={inputCls}
-            />
-          </div>
-
-          {/* Totals */}
-          <div className="bg-[#0d1117] border border-[#1e2d45] rounded-xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-[#131d2e] flex items-center gap-3">
-              <div className="w-1.5 h-4 rounded-full bg-blue-400" />
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Summary</span>
-            </div>
-            <div className="p-5 space-y-2">
-              {[
-                ["Subtotal", fmt(subtotal)],
-                [`Tax (${parseFloat(taxRate) || 0}%)`, fmt(tax)],
-                ["Processing Fee", fmt(processingFee)],
-              ].map(([label, value]) => (
-                <div key={label} className="flex justify-between items-center py-1.5">
-                  <span className="text-xs text-slate-500 uppercase tracking-widest">{label}</span>
-                  <span className="text-sm text-slate-400">{value}</span>
                 </div>
-              ))}
+              </Card>
 
-              <div className="!mt-4 pt-4 border-t border-[#1e2d45]">
-                <div className="flex justify-between items-baseline">
-                  <span className="text-xs text-slate-400 uppercase tracking-widest font-bold">Total</span>
-                  <span className="text-2xl font-black text-blue-400 tracking-tight">{fmt(total)}</span>
+              <Card tk={tk}>
+                <CardHeader tk={tk} title="Receipt" />
+                <div className="p-4">
+                  <ReceiptPills
+                    tk={tk}
+                    receiptType={receiptType}
+                    onSelect={setReceiptType}
+                    receiptContact={receiptContact}
+                    onContactChange={setReceiptContact}
+                  />
                 </div>
-              </div>
+              </Card>
+
+              {intentError && <ErrorBanner msg={intentError} />}
             </div>
           </div>
 
-          {/* Receipt */}
-          <div className="bg-[#0d1117] border border-[#1e2d45] rounded-xl p-5">
-            <FieldLabel>Receipt Delivery</FieldLabel>
-            <div className="grid grid-cols-4 gap-1.5 mb-4">
-              {(["none", "print", "email", "sms"] as const).map(type => (
+          {/* ── RIGHT COLUMN — sticky on lg ── */}
+          <div className="hidden lg:block">
+            <div className="sticky top-[80px] space-y-4">
+
+              {/* Tax rate */}
+              <Card tk={tk}>
+                <CardHeader tk={tk} title="Tax Rate" />
+                <div className="p-5">
+                  <div className="relative">
+                    {/* FIX #4: htmlFor / id */}
+                    <label htmlFor="tax-rate-desktop" className="sr-only">Tax Rate</label>
+                    <input
+                      id="tax-rate-desktop"
+                      type="number"
+                      inputMode="decimal"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      value={taxRate}
+                      onChange={e => setTaxRate(e.target.value)}
+                      className={`${inputCls} pr-10`}
+                    />
+                    <span
+                      aria-hidden="true"
+                      className={`absolute right-4 top-1/2 -translate-y-1/2 font-semibold text-[15px] ${tk.subtleText}`}
+                    >
+                      %
+                    </span>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Totals summary */}
+              <Card tk={tk}>
+                <CardHeader tk={tk} title="Order Summary" />
+                <div className="px-5 pt-2 pb-4">
+                  {[
+                    ["Subtotal",       fmt(subtotal)],
+                    [`Tax (${parseFloat(taxRate) || 0}%)`, fmt(tax)],
+                    ["Processing Fee", fmt(processingFee)],
+                  ].map(([label, value]) => (
+                    <div key={label} className={`flex justify-between items-center py-3 border-b ${tk.rowBorder}`}>
+                      <span className={`text-[13px] ${tk.subtleText}`}>{label}</span>
+                      <span className={`text-[13px] font-medium ${tk.subtleText}`}>{value}</span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between items-center pt-4 pb-1">
+                    <span className={`text-[15px] font-bold ${tk.totalLabel}`}>Total</span>
+                    <span className={`text-[28px] font-bold tracking-tight ${tk.totalAmt}`}>{fmt(total)}</span>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Receipt */}
+              <Card tk={tk}>
+                <CardHeader tk={tk} title="Receipt" />
+                <div className="p-4">
+                  <ReceiptPills
+                    tk={tk}
+                    receiptType={receiptType}
+                    onSelect={setReceiptType}
+                    receiptContact={receiptContact}
+                    onContactChange={setReceiptContact}
+                  />
+                </div>
+              </Card>
+
+              {/* Charge CTA */}
+              <div className="space-y-3 pb-2">
+                {intentError && <ErrorBanner msg={intentError} />}
                 <button
-                  key={type}
-                  onClick={() => setReceiptType(type)}
-                  className={`py-2 rounded-md text-[11px] font-bold uppercase tracking-widest transition-all duration-150 ${
-                    receiptType === type
-                      ? "bg-blue-600 text-white shadow-md shadow-blue-900/30"
-                      : "bg-[#0a0f18] text-slate-500 border border-[#1e2d45] hover:text-slate-300 hover:border-[#2a3f5f]"
-                  }`}
+                  onClick={startCheckout}
+                  disabled={items.length === 0 || loadingIntent || total <= 0}
+                  className={`w-full h-16 rounded-2xl text-white text-[17px] font-bold flex items-center justify-center gap-3
+                    transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed ${tk.ctaPrimary}`}
                 >
-                  {type}
+                  {loadingIntent ? (
+                    <>
+                      <Spinner />
+                      Preparing…
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
+                          d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                      </svg>
+                      Charge {fmt(total)}
+                    </>
+                  )}
                 </button>
-              ))}
-            </div>
-            {(receiptType === "email" || receiptType === "sms") && (
-              <div>
-                <FieldLabel>{receiptType === "email" ? "Email Address" : "Phone Number"}</FieldLabel>
-                <input
-                  value={receiptContact}
-                  onChange={e => setReceiptContact(e.target.value)}
-                  placeholder={receiptType === "email" ? "customer@email.com" : "+1 (555) 000-0000"}
-                  className={inputCls}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Checkout button */}
-          {!clientSecret ? (
-            <div className="space-y-3">
-              {intentError && <ErrorMsg msg={intentError} />}
-              <button
-                onClick={startCheckout}
-                disabled={items.length === 0 || loadingIntent || total <= 0}
-                className="w-full py-4 rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-sm font-black uppercase tracking-widest disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150 shadow-xl shadow-blue-900/40"
-              >
-                {loadingIntent ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <span className="inline-block animate-spin">⏳</span>
-                    Initializing…
-                  </span>
-                ) : (
-                  `Charge ${fmt(total)}`
+                {items.length === 0 && (
+                  <p className={`text-center text-[12px] ${tk.mutedText}`}>
+                    Add at least one item to continue
+                  </p>
                 )}
-              </button>
+              </div>
             </div>
-          ) : (
-            <Elements stripe={stripePromise} options={{ clientSecret, appearance: stripeAppearance }}>
-              <PaymentForm
-                clientSecret={clientSecret}
-                total={total}
-                onSuccess={handleSuccess}
-                onCancel={() => setClientSecret(null)}
-              />
-            </Elements>
-          )}
+          </div>
         </div>
       </div>
+
+      {/* Sticky bottom bar: mobile/tablet only, disappears on lg */}
+      <StickyBottomBar
+        tk={tk}
+        total={total}
+        itemCount={items.length}
+        loadingIntent={loadingIntent}
+        onCharge={startCheckout}
+      />
     </div>
   );
 }
