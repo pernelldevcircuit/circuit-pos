@@ -784,7 +784,7 @@ export default function CircuitPOS() {
             <img
               src="https://assets.cdn.filesafe.space/cZKbxiE0isWncXg1MywT/media/69e8c50638e07b34846b1d97.png"
               alt="Circuit"
-              className="h-8 w-auto object-contain"
+              className="h-14 w-auto object-contain py-1"
             />
           </div>
 
