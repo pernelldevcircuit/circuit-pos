@@ -329,7 +329,7 @@ function ReceiptPills({
             type={receiptType === "email" ? "email" : "tel"}
             inputMode={receiptType === "email" ? "email" : "tel"}
             value={receiptContact}
-            onChange={e => onContactChange(e.target.value)}
+            onChange={(e) => onContactChange(e.target.value)}
             placeholder={receiptType === "email" ? "customer@email.com" : "+1 (555) 000-0000"}
             className={inputCls}
             autoComplete={receiptType === "email" ? "email" : "tel"}
@@ -358,12 +358,6 @@ function TapToPayCard({ tk }: { tk: Tokens }) {
               Mobile Only
             </span>
           </div>
-          {/*
-            FIX: Previously the period and surrounding whitespace were split across
-            JSX line boundaries, causing inconsistent spacing between "Circuit Mobile"
-            and "Requires" across renderers. All three text nodes are now explicit
-            string expressions — no implicit whitespace from line breaks.
-          */}
           <p className={`text-[13px] leading-relaxed ${tk.tapBody}`}>
             {"Available in "}
             <span className={`font-semibold ${tk.tapSub}`}>Circuit Mobile</span>
@@ -509,8 +503,6 @@ function PaymentForm({ total, tk, onSuccess, onCancel }: PaymentFormProps) {
 // ── Main POS Component ────────────────────────────────────────────────────────
 export default function CircuitPOS() {
   // ── Theme ──────────────────────────────────────────────────────────────────
-  // Initialize false on both SSR and client to prevent hydration mismatch.
-  // useEffect below syncs to system preference after mount.
   const [dark, setDark]               = useState(false);
   const [userOverride, setUserOverride] = useState(false);
 
@@ -620,14 +612,6 @@ export default function CircuitPOS() {
     setItems([]); setResult(null); setClientSecret(null); setShowPayment(false);
     setReceiptType("none"); setReceiptContact(""); setIntentError(""); setAddError("");
   }
-
-  // NOTE: Font loading has been moved to app/layout.tsx + globals.css.
-  // Add to app/layout.tsx <head>:
-  //   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  //   <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-  //   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  // Add to globals.css:
-  //   body { font-family: 'DM Sans', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
 
   // ═══════════════════════════════════════════════════════════════════
   // ── SUCCESS VIEW ─────────────────────────────────────────────────
@@ -818,7 +802,7 @@ export default function CircuitPOS() {
               <input
                 id="merchant-id"
                 value={merchantId}
-                onChange={e => setMerchantId(e.target.value)}
+                onChange={(e) => setMerchantId(e.target.value)}
                 placeholder="MID-000000"
                 className={`rounded-xl px-3.5 py-2.5 text-[13px] font-medium border-[1.5px] outline-none w-36 focus:ring-[3px] transition-all duration-150 ${tk.merchantInput}`}
               />
@@ -844,7 +828,7 @@ export default function CircuitPOS() {
                   <input
                     id="item-name"
                     value={itemName}
-                    onChange={e => setItemName(e.target.value)}
+                    onChange={(e) => setItemName(e.target.value)}
                     onKeyDown={e => e.key === "Enter" && addItem()}
                     placeholder="Product or service description"
                     className={inputCls}
@@ -860,7 +844,7 @@ export default function CircuitPOS() {
                       inputMode="numeric"
                       min="1"
                       value={itemQty}
-                      onChange={e => setItemQty(e.target.value)}
+                      onChange={(e) => setItemQty(e.target.value)}
                       className={inputCls}
                     />
                   </div>
@@ -873,7 +857,7 @@ export default function CircuitPOS() {
                       min="0"
                       step="0.01"
                       value={itemPrice}
-                      onChange={e => setItemPrice(e.target.value)}
+                      onChange={(e) => setItemPrice(e.target.value)}
                       onKeyDown={e => e.key === "Enter" && addItem()}
                       placeholder="0.00"
                       className={inputCls}
@@ -968,7 +952,7 @@ export default function CircuitPOS() {
                       max="100"
                       step="0.1"
                       value={taxRate}
-                      onChange={e => setTaxRate(e.target.value)}
+                      onChange={(e) => setTaxRate(e.target.value)}
                       className={`${inputCls} pr-10`}
                     />
                     <span
@@ -1016,7 +1000,7 @@ export default function CircuitPOS() {
                       max="100"
                       step="0.1"
                       value={taxRate}
-                      onChange={e => setTaxRate(e.target.value)}
+                      onChange={(e) => setTaxRate(e.target.value)}
                       className={`${inputCls} pr-10`}
                     />
                     <span
@@ -1099,18 +1083,6 @@ export default function CircuitPOS() {
         </div>
       </div>
 
-      function StickyBottomBar(...) {
-  ...
-}
-
-function StickyContactButton({ dark }: { dark: boolean }) {
-  ...
-}
-
-interface PaymentFormProps {
-  ...
-}
-      
       {/* Sticky bottom bar: mobile/tablet only */}
       <StickyBottomBar
         tk={tk}
