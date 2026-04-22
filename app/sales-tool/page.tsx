@@ -166,6 +166,7 @@ export default function SalesToolPage() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
+          <AuthGuard>
     <div className={`min-h-screen transition-colors duration-300 ${tk.page}`}>
 
       {/* ── Header ── */}
@@ -174,7 +175,6 @@ export default function SalesToolPage() {
         <div className="max-w-5xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
 
           {/* ── Brand / Logo ── */}
-          <div className="flex items-center gap-3 shrink-0">
             <img
               src="https://assets.cdn.filesafe.space/cZKbxiE0isWncXg1MywT/media/69e8c50638e07b34846b1d97.png"
               alt="Circuit"
