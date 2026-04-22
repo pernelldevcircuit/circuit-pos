@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import AuthGuard from '@/app/components/AuthGuard'
 
 // ── Theme token maps ──────────────────────────────────────────────────────────
 const LIGHT = {
@@ -169,6 +170,7 @@ export default function SalesToolPage() {
 
       {/* ── Header ── */}
       <header className={`border-b sticky top-0 z-20 transition-colors duration-300 ${tk.header}`}>
+            <AuthGuard>
         <div className="max-w-5xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
 
           {/* ── Brand / Logo ── */}
@@ -422,5 +424,6 @@ export default function SalesToolPage() {
         </div>
       </div>
     </div>
+          </AuthGuard>
   );
 }
