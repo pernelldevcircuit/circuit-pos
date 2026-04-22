@@ -109,11 +109,9 @@ function calcProcessingFee(total: number) {
 }
 
 // ── Theme token maps ──────────────────────────────────────────────────────────
-// All class strings are full literals so Tailwind JIT preserves them.
 const LIGHT = {
   page:            "bg-gray-50 text-gray-900",
   header:          "bg-white border-gray-100",
-  // FIX #1: was "border-gray-150" — not a valid Tailwind step; replaced with border-gray-200
   card:            "bg-white border-gray-200 shadow-sm",
   cardHdr:         "border-gray-100",
   cardHdrTxt:      "text-gray-400",
@@ -303,7 +301,6 @@ function ReceiptPills({
   receiptContact: string;
   onContactChange: (v: string) => void;
 }) {
-  // FIX #4: added htmlFor / id pairing on the contact input label
   const labelCls = `block text-[11px] font-semibold uppercase tracking-[0.08em] mb-2 ${tk.label}`;
   const inputCls = `w-full rounded-xl px-4 py-4 text-[15px] border-[1.5px] outline-none transition-all duration-150 min-h-[52px] focus:ring-[3px] ${tk.input}`;
 
@@ -324,7 +321,6 @@ function ReceiptPills({
       </div>
       {(receiptType === "email" || receiptType === "sms") && (
         <div>
-          {/* FIX #4: htmlFor matches input id */}
           <label htmlFor="receipt-contact" className={labelCls}>
             {receiptType === "email" ? "Email Address" : "Phone Number"}
           </label>
@@ -362,15 +358,20 @@ function TapToPayCard({ tk }: { tk: Tokens }) {
               Mobile Only
             </span>
           </div>
+          {/*
+            FIX: Previously the period and surrounding whitespace were split across
+            JSX line boundaries, causing inconsistent spacing between "Circuit Mobile"
+            and "Requires" across renderers. All three text nodes are now explicit
+            string expressions — no implicit whitespace from line breaks.
+          */}
           <p className={`text-[13px] leading-relaxed ${tk.tapBody}`}>
-            Available in{" "}
-            <span className={`font-semibold ${tk.tapSub}`}>Circuit Mobile</span>.
-            {" "}Requires Circuit app on a supported iPhone.
+            {"Available in "}
+            <span className={`font-semibold ${tk.tapSub}`}>Circuit Mobile</span>
+            {". Requires Circuit app on a supported iPhone."}
           </p>
         </div>
       </div>
       <div className={`mt-4 pt-4 border-t ${tk.tapDivider}`}>
-        {/* FIX #7: was &amp; which renders as literal "&amp;" in JSX — replaced with plain & */}
         <p className={`text-[12px] font-medium ${tk.tapFooter}`}>
           Download the Circuit app → accept contactless cards, Apple Pay & Google Pay directly.
         </p>
@@ -391,8 +392,6 @@ function StickyBottomBar({
 }) {
   if (itemCount === 0) return null;
   return (
-    // FIX #5: was "py-3" (sets both top+bottom padding); changed to "pt-3" so the
-    // inline paddingBottom from safe-area-inset is the sole bottom padding source.
     <div
       className={`fixed bottom-0 left-0 right-0 z-30 border-t px-4 pt-3 lg:hidden transition-colors duration-300 ${tk.stickyPanel}`}
       style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}
@@ -510,14 +509,12 @@ function PaymentForm({ total, tk, onSuccess, onCancel }: PaymentFormProps) {
 // ── Main POS Component ────────────────────────────────────────────────────────
 export default function CircuitPOS() {
   // ── Theme ──────────────────────────────────────────────────────────────────
-  // FIX #2: Initialize to false unconditionally (safe SSR default) to prevent
-  // hydration mismatch. The real system preference is read in useEffect below.
+  // Initialize false on both SSR and client to prevent hydration mismatch.
+  // useEffect below syncs to system preference after mount.
   const [dark, setDark]               = useState(false);
   const [userOverride, setUserOverride] = useState(false);
 
   useEffect(() => {
-    // FIX #2 continued: sync to system preference on first mount, then listen
-    // for changes — but stop listening once the user has manually toggled.
     if (userOverride) return;
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     setDark(mq.matches);
@@ -556,7 +553,6 @@ export default function CircuitPOS() {
 
   const stripeAppearance = useMemo(() => buildStripeAppearance(dark), [dark]);
 
-  // Derived class strings (depend on tk, recomputed on theme change)
   const inputCls = `w-full rounded-xl px-4 py-4 text-[15px] border-[1.5px] outline-none transition-all duration-150 min-h-[52px] focus:ring-[3px] ${tk.input}`;
   const labelCls = `block text-[11px] font-semibold uppercase tracking-[0.08em] mb-2 ${tk.label}`;
 
@@ -625,9 +621,7 @@ export default function CircuitPOS() {
     setReceiptType("none"); setReceiptContact(""); setIntentError(""); setAddError("");
   }
 
-  // FIX #8: <style> tags with @import are spec-invalid when injected into <body>.
-  // Font loading has been moved to app/layout.tsx + globals.css (see note below).
-  // The fontStyle const and all <style>{fontStyle}</style> tags have been removed.
+  // NOTE: Font loading has been moved to app/layout.tsx + globals.css.
   // Add to app/layout.tsx <head>:
   //   <link rel="preconnect" href="https://fonts.googleapis.com" />
   //   <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -741,7 +735,6 @@ export default function CircuitPOS() {
 
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-lg mx-auto px-5 py-6 space-y-5">
-            {/* Order recap */}
             <Card tk={tk}>
               <CardHeader tk={tk} title="Order Summary" />
               <div className="px-5 py-1">
@@ -800,7 +793,6 @@ export default function CircuitPOS() {
       {/* ── Header ── */}
       <header className={`border-b sticky top-0 z-20 transition-colors duration-300 ${tk.header}`}>
         <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
-          {/* Brand */}
           <div className="flex items-center gap-3 shrink-0">
             <div className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-sm ${tk.tapIcon}`}>
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -815,10 +807,8 @@ export default function CircuitPOS() {
             </div>
           </div>
 
-          {/* Right: merchant input + theme toggle */}
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              {/* FIX #4: htmlFor added; matches input id below */}
               <label
                 htmlFor="merchant-id"
                 className={`text-[11px] font-semibold uppercase tracking-wider hidden sm:block ${tk.label}`}
@@ -838,20 +828,18 @@ export default function CircuitPOS() {
         </div>
       </header>
 
-      {/* ── Body: two-col on lg, single col below ── */}
+      {/* ── Body ── */}
       <div className="max-w-6xl mx-auto px-4 py-5 lg:py-7">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-5 items-start">
 
           {/* ── LEFT COLUMN ── */}
-          {/* pb-28 creates clearance for the sticky bottom bar on mobile */}
           <div className="space-y-4 pb-28 lg:pb-0">
 
-            {/* Add Item card */}
+            {/* Add Item */}
             <Card tk={tk}>
               <CardHeader tk={tk} title="Add Item" />
               <div className="p-5 space-y-4">
                 <div>
-                  {/* FIX #4: htmlFor / id pairs on all form labels */}
                   <label htmlFor="item-name" className={labelCls}>Item Name</label>
                   <input
                     id="item-name"
@@ -962,16 +950,15 @@ export default function CircuitPOS() {
               )}
             </Card>
 
-            {/* Tap to Pay info */}
+            {/* Tap to Pay */}
             <TapToPayCard tk={tk} />
 
-            {/* ── Mobile-only: tax + receipt (above sticky bar) ── */}
+            {/* Mobile-only: tax + receipt */}
             <div className="lg:hidden space-y-4">
               <Card tk={tk}>
                 <CardHeader tk={tk} title="Tax Rate" />
                 <div className="p-5">
                   <div className="relative">
-                    {/* FIX #4: htmlFor / id */}
                     <label htmlFor="tax-rate-mobile" className="sr-only">Tax Rate</label>
                     <input
                       id="tax-rate-mobile"
@@ -1020,7 +1007,6 @@ export default function CircuitPOS() {
                 <CardHeader tk={tk} title="Tax Rate" />
                 <div className="p-5">
                   <div className="relative">
-                    {/* FIX #4: htmlFor / id */}
                     <label htmlFor="tax-rate-desktop" className="sr-only">Tax Rate</label>
                     <input
                       id="tax-rate-desktop"
@@ -1043,7 +1029,7 @@ export default function CircuitPOS() {
                 </div>
               </Card>
 
-              {/* Totals summary */}
+              {/* Order Summary */}
               <Card tk={tk}>
                 <CardHeader tk={tk} title="Order Summary" />
                 <div className="px-5 pt-2 pb-4">
@@ -1113,7 +1099,7 @@ export default function CircuitPOS() {
         </div>
       </div>
 
-      {/* Sticky bottom bar: mobile/tablet only, disappears on lg */}
+      {/* Sticky bottom bar: mobile/tablet only */}
       <StickyBottomBar
         tk={tk}
         total={total}
