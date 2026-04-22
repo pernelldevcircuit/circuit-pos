@@ -504,23 +504,26 @@ function PaymentForm({ total, tk, onSuccess, onCancel }: PaymentFormProps) {
 // ── Main POS Component ────────────────────────────────────────────────────────
 export default function CircuitPOS() {
   // ── Theme ──────────────────────────────────────────────────────────────────
-  const [dark, setDark]               = useState(false);
-  const [userOverride, setUserOverride] = useState(false);
+const [dark, setDark] = useState(true);
 
   useEffect(() => {
-    if (userOverride) return;
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    setDark(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setDark(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, [userOverride]);
+    if (typeof window === 'undefined') return;
+    const stored = localStorage.getItem('circuit-theme');
+    if (stored === 'light' || stored === 'dark') {
+      setDark(stored === 'dark');
+    } else if (window.matchMedia) {
+      setDark(window.matchMedia('(prefers-color-scheme: dark)').matches);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('circuit-theme', dark ? 'dark' : 'light');
+  }, [dark]);
 
   function toggleTheme() {
     setDark(d => !d);
-    setUserOverride(true);
   }
-
   const tk: Tokens = dark ? DARK : LIGHT;
 
   // ── POS state ──────────────────────────────────────────────────────────────
