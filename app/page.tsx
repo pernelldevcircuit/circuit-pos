@@ -79,6 +79,7 @@ type Tier = {
   tier_name?: string | null
   rate?: number | string | null
   base_rate?: number | string | null
+    rate_percentage?: number | string | null
   per_transaction_fee?: number | string | null
 }
 
@@ -487,7 +488,7 @@ export default function Home() {
                           {tier.name ?? tier.tier_name ?? 'Unnamed'}
                         </h4>
                         <p className="text-2xl font-bold tracking-tight mt-2">
-                          {formatRate(tier.rate ?? tier.base_rate)}
+                          {formatRate(tier.rate_percentage ?? tier.rate ?? tier.base_rate)}
                         </p>
                         <p className={`text-xs ${tk.muted} mt-1`}>
                           + {formatFee(tier.per_transaction_fee)} per txn
