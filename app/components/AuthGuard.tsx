@@ -2,14 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const [checking, setChecking] = useState(true)
 
   useEffect(() => {
-    const supabase = createClient()
 
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) {
