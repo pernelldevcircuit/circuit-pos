@@ -7,7 +7,9 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const [checking, setChecking] = useState(true)
 
   useEffect(() => {
-    const supabase = createClient()      if (!data.session) {
+    const supabase = createClient()
+
+    if (!data.session) {
         router.replace('/login')
       } else {
         setChecking(false)
