@@ -368,7 +368,7 @@ function TapToPayCard({ tk }: { tk: Tokens }) {
       </div>
       <div className={`mt-4 pt-4 border-t ${tk.tapDivider}`}>
         <p className={`text-[12px] font-medium ${tk.tapFooter}`}>
-          Download the Circuit app → accept contactless cards, Apple Pay & Google Pay directly.
+          Download the Circuit app → accept contactless cards, Apple Pay &amp; Google Pay directly.
         </p>
       </div>
     </div>
@@ -630,6 +630,7 @@ export default function CircuitPOS() {
               <div className="p-8 text-center">
                 <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5 border-2 ${tk.successIconBg}`}>
                   <svg className="w-8 h-8 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
                 <h1 className={`text-[22px] font-bold mb-1 ${tk.successTitle}`}>Payment Accepted</h1>
