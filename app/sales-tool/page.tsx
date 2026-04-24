@@ -27,7 +27,7 @@ const LIGHT = {
   tierName:        "text-gray-900",
   tierSub:         "text-gray-500",
   selectBg:        "bg-white border-gray-200 text-gray-900 focus:ring-blue-700/10 focus:border-blue-700",
-};
+}
 
 const DARK = {
   page:            "bg-[#0b0f18] text-slate-100",
@@ -52,9 +52,9 @@ const DARK = {
   tierName:        "text-slate-100",
   tierSub:         "text-slate-400",
   selectBg:        "bg-[#0f1623] border-slate-600 text-slate-100 focus:ring-blue-400/15 focus:border-blue-400",
-};
+}
 
-type Tokens = typeof LIGHT;
+type Tokens = typeof LIGHT
 
 // ── Theme Toggle ──────────────────────────────────────────────────────────────
 function ThemeToggle({ dark, onToggle }: { dark: boolean; onToggle: () => void }) {
@@ -75,7 +75,7 @@ function ThemeToggle({ dark, onToggle }: { dark: boolean; onToggle: () => void }
           ${dark ? "left-[26px]" : "left-[3px]"}`}
       />
     </button>
-  );
+  )
 }
 
 // ── Card wrapper ──────────────────────────────────────────────────────────────
@@ -84,7 +84,7 @@ function Card({ tk, children, className = "" }: { tk: Tokens; children: React.Re
     <div className={`rounded-2xl border overflow-hidden ${tk.card} ${className}`}>
       {children}
     </div>
-  );
+  )
 }
 
 function CardHeader({ tk, title }: { tk: Tokens; title: string }) {
@@ -92,7 +92,7 @@ function CardHeader({ tk, title }: { tk: Tokens; title: string }) {
     <div className={`px-5 py-4 flex items-center border-b ${tk.cardHdr}`}>
       <span className={`text-[11px] font-bold uppercase tracking-[0.1em] ${tk.cardHdrTxt}`}>{title}</span>
     </div>
-  );
+  )
 }
 
 // ── Spinner ───────────────────────────────────────────────────────────────────
@@ -102,33 +102,34 @@ function Spinner() {
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z" />
     </svg>
-  );
+  )
 }
 
 // ── Main Sales Tool Component ─────────────────────────────────────────────────
 export default function SalesToolPage() {
   // ── Theme ──────────────────────────────────────────────────────────────────
-  const [dark, setDark] = useState(true);
+  const [dark, setDark] = useState(true)
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const stored = localStorage.getItem('circuit-theme');
+    if (typeof window === 'undefined') return
+    const stored = localStorage.getItem('circuit-theme')
     if (stored === 'light' || stored === 'dark') {
-      setDark(stored === 'dark');
+      setDark(stored === 'dark')
     } else if (window.matchMedia) {
-      setDark(window.matchMedia('(prefers-color-scheme: dark)').matches);
+      setDark(window.matchMedia('(prefers-color-scheme: dark)').matches)
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem('circuit-theme', dark ? 'dark' : 'light');
-  }, [dark]);
+    if (typeof window === 'undefined') return
+    localStorage.setItem('circuit-theme', dark ? 'dark' : 'light')
+  }, [dark])
 
   function toggleTheme() {
-    setDark(d => !d);
+    setDark(d => !d)
   }
-  const tk: Tokens = dark ? DARK : LIGHT;
+
+  const tk: Tokens = dark ? DARK : LIGHT
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [inputs, setInputs] = useState({
@@ -136,33 +137,33 @@ export default function SalesToolPage() {
     currentRate:      2.9,
     averageTicket:    45,
     currentProcessor: 'Square',
-  });
+  })
 
-  const [quote, setQuote]     = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+  const [quote, setQuote]     = useState<any>(null)
+  const [loading, setLoading] = useState(false)
 
   // ── Logic ──────────────────────────────────────────────────────────────────
   const handleCalculate = async () => {
-    setLoading(true);
+    setLoading(true)
     try {
       const response = await fetch('/api/pricing/quote', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify(inputs),
-      });
-      const data = await response.json();
-      setQuote(data.quote);
+      })
+      const data = await response.json()
+      setQuote(data.quote)
     } catch (error) {
-      console.error('Quote error:', error);
+      console.error('Quote error:', error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   // ── Shared style strings ───────────────────────────────────────────────────
-  const inputCls  = `w-full rounded-xl px-4 py-4 text-[15px] border-[1.5px] outline-none transition-all duration-150 min-h-[52px] focus:ring-[3px] ${tk.input}`;
-  const selectCls = `w-full rounded-xl px-4 py-4 text-[15px] border-[1.5px] outline-none transition-all duration-150 min-h-[52px] focus:ring-[3px] appearance-none ${tk.selectBg}`;
-  const labelCls  = `block text-[11px] font-semibold uppercase tracking-[0.08em] mb-2 ${tk.label}`;
+  const inputCls  = `w-full rounded-xl px-4 py-4 text-[15px] border-[1.5px] outline-none transition-all duration-150 min-h-[52px] focus:ring-[3px] ${tk.input}`
+  const selectCls = `w-full rounded-xl px-4 py-4 text-[15px] border-[1.5px] outline-none transition-all duration-150 min-h-[52px] focus:ring-[3px] appearance-none ${tk.selectBg}`
+  const labelCls  = `block text-[11px] font-semibold uppercase tracking-[0.08em] mb-2 ${tk.label}`
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -423,5 +424,5 @@ export default function SalesToolPage() {
         </div>
       </div>
     </AuthGuard>
-  );
+  )
 }
