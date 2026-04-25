@@ -12,9 +12,8 @@ interface MerchantProfile {
   user_id: string
   business_name: string
   business_type: BusinessType
-  subscription_tier: 'free'
-  subscription_status: 'active'
-}
+    email: string
+  
 
 export default function SignupPage() {
   const router = useRouter()
@@ -118,9 +117,8 @@ export default function SignupPage() {
         user_id:             authData.user.id,
         business_name:       businessName,
         business_type:       businessType,
-        subscription_tier:   'free',
-        subscription_status: 'active',
-      }
+                  email:              email,
+
 
       const { error: profileError } = await supabase
         .from('merchants')
