@@ -670,6 +670,7 @@ export default function SignupPage() {
         >
           Already have an account?{' '}
           
+            <a
             href="/login"
             style={{ color: accent, textDecoration: 'none', fontWeight: 500 }}
           >
