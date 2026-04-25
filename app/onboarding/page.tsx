@@ -76,7 +76,7 @@ export default function OnboardingPage() {
 
     await upsertMerchantProfile(supabase, userId, {
       ...formData,
-      onboarding_complete: true,
+      stripe_onboarding_complete: true,
     })
 
     setPageState('complete')
