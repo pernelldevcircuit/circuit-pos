@@ -13,7 +13,7 @@ interface MerchantProfile {
   business_name: string
   business_type: BusinessType
     email: string
-  
+}  
 
 export default function SignupPage() {
   const router = useRouter()
