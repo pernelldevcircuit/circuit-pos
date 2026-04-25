@@ -27,16 +27,16 @@ export default function LoginPage() {
   }, [router])
 
   // ── Derived style tokens ────────────────────────────────────────────
-  const bg          = isDark ? '#0a0a0a' : '#f0f9fc'
-  const cardBg      = isDark ? '#111827' : '#ffffff'
-  const border      = isDark ? '#1f2937' : '#e2e8f0'
-  const text        = isDark ? '#f9fafb' : '#0f172a'
-  const muted       = isDark ? '#9ca3af' : '#64748b'
-  const accent      = '#3b82f6'
-  const inputBg     = isDark ? '#1f2937' : '#f1f5f9'
-  const oauthBg     = isDark ? '#1f2937' : '#f8fafc'
-  const oauthBorder = isDark ? '#374151' : '#e2e8f0'
-  const oauthHover  = isDark ? '#263040' : '#f1f5f9'
+  const bg           = isDark ? '#0a0a0a' : '#f0f9fc'
+  const cardBg       = isDark ? '#111827' : '#ffffff'
+  const border       = isDark ? '#1f2937' : '#e2e8f0'
+  const text         = isDark ? '#f9fafb' : '#0f172a'
+  const muted        = isDark ? '#9ca3af' : '#64748b'
+  const accent       = '#3b82f6'
+  const inputBg      = isDark ? '#1f2937' : '#f1f5f9'
+  const oauthBg      = isDark ? '#1f2937' : '#f8fafc'
+  const oauthBorder  = isDark ? '#374151' : '#e2e8f0'
+  const oauthHover   = isDark ? '#263040' : '#f1f5f9'
   const dividerColor = isDark ? '#1f2937' : '#e2e8f0'
   const dividerText  = isDark ? '#4b5563' : '#94a3b8'
 
@@ -131,7 +131,7 @@ export default function LoginPage() {
             : '0 8px 32px rgba(0,0,0,0.08)',
         }}
       >
-        {/* Logo */}
+        {/* ── Logo ── */}
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <div
             style={{
@@ -178,7 +178,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Error */}
+        {/* ── Error Banner ── */}
         {error && (
           <div
             style={{
@@ -197,6 +197,7 @@ export default function LoginPage() {
 
         {/* ── Email / Password Form ─────────────────────────────────── */}
         <form onSubmit={handleLogin} noValidate>
+
           {/* Email */}
           <div style={{ marginBottom: '16px' }}>
             <label
@@ -320,8 +321,12 @@ export default function LoginPage() {
             onClick={() => handleOAuth('google')}
             disabled={!!oauthLoading || loading}
             style={oauthBtnStyle('google')}
-            onMouseEnter={e => { if (!oauthLoading && !loading) e.currentTarget.style.background = oauthHover }}
-            onMouseLeave={e => { e.currentTarget.style.background = oauthBg }}
+            onMouseEnter={e => {
+              if (!oauthLoading && !loading) e.currentTarget.style.background = oauthHover
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = oauthBg
+            }}
           >
             {oauthLoading === 'google' ? (
               <OauthSpinner />
@@ -342,8 +347,12 @@ export default function LoginPage() {
             onClick={() => handleOAuth('apple')}
             disabled={!!oauthLoading || loading}
             style={oauthBtnStyle('apple')}
-            onMouseEnter={e => { if (!oauthLoading && !loading) e.currentTarget.style.background = oauthHover }}
-            onMouseLeave={e => { e.currentTarget.style.background = oauthBg }}
+            onMouseEnter={e => {
+              if (!oauthLoading && !loading) e.currentTarget.style.background = oauthHover
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = oauthBg
+            }}
           >
             {oauthLoading === 'apple' ? (
               <OauthSpinner />
@@ -356,7 +365,7 @@ export default function LoginPage() {
           </button>
         </div>
 
-        {/* Sign up link */}
+        {/* ── Sign up link ── */}
         <p
           style={{
             marginTop: '24px',
@@ -379,7 +388,7 @@ export default function LoginPage() {
         </p>
       </div>
 
-      {/* Footer */}
+      {/* ── Footer ── */}
       <p
         style={{
           marginTop: '24px',
