@@ -10,7 +10,7 @@ import {
   profileToFormData,
   DEFAULT_MERCHANT_FORM,
 } from '@/lib/merchant'
-import BusinessSettingsForm from '@/app/components/BusinessSettingsForm'
+import { BusinessSettingsForm } from '@/app/components/BusinessSettingsForm'
 
 export default function OnboardingPage() {
   const router = useRouter()
