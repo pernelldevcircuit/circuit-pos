@@ -9,11 +9,11 @@ type AuthTab = 'password' | 'magic'
 type BusinessType = 'retail' | 'restaurant' | 'service' | 'other'
 
 interface MerchantProfile {
-  user_id: string
+  user_id:       string
   business_name: string
   business_type: BusinessType
-    email: string
-}  
+  email:         string
+}
 
 export default function SignupPage() {
   const router = useRouter()
@@ -114,11 +114,11 @@ export default function SignupPage() {
 
       // 2. Create merchant profile
       const profile: MerchantProfile = {
-        user_id:             authData.user.id,
-        business_name:       businessName,
-        business_type:       businessType,
-                  email:              email,
-
+        user_id:       authData.user.id,
+        business_name: businessName,
+        business_type: businessType,
+        email:         email,
+      }
 
       const { error: profileError } = await supabase
         .from('merchants')
@@ -668,7 +668,6 @@ export default function SignupPage() {
         >
           Already have an account?{' '}
           
-            <a
             href="/login"
             style={{ color: accent, textDecoration: 'none', fontWeight: 500 }}
           >
