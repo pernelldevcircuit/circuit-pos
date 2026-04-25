@@ -573,6 +573,7 @@ export default function LoginPage() {
         >
           Don&apos;t have an account?{' '}
           
+            <a
             href="/signup"
             style={{ color: accent, textDecoration: 'none', fontWeight: 500 }}
           >
