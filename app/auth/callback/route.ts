@@ -1,75 +1,68 @@
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase-server'
-export async function GET(request: NextRequest): Promise<NextResponse> {
-  const { searchParams, origin } = new URL(request.url)
-  const code  = searchParams.get('code')
-  const error = searchParams.get('error')
 
-  // ── OAuth provider returned an error ───────────────────────────────
-  if (error) {
-    console.error('[auth/callback] OAuth error:', error)
-    return NextResponse.redirect(
-      `${origin}/login?error=${encodeURIComponent(error)}`
-    )
-  }
+export async function GET(request: NextRequest) {
+  const requestUrl = new URL(request.url)
+  const code = requestUrl.searchParams.get('code')
 
-  // ── No code present — malformed request ───────────────────────────
   if (!code) {
-    console.error('[auth/callback] No code in request')
-    return NextResponse.redirect(`${origin}/login?error=missing_code`)
+    return NextResponse.redirect(new URL('/login?error=missing_code', request.url))
   }
 
-  // ── Exchange code for session ──────────────────────────────────────
-  const supabase = createClient()
-  const { data: sessionData, error: sessionError } =
-    await supabase.auth.exchangeCodeForSession(code)
-    console.error('[auth/callback] Session exchange failed:', sessionError)
-    return NextResponse.redirect(
-      `${origin}/login?error=${encodeURIComponent(
-        sessionError?.message ?? 'session_exchange_failed'
-      )}`
-    )
+  const supabase = createRouteHandlerClient({ cookies })
+
+  try {
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    if (error) {
+      console.error('OAuth code exchange failed:', error)
+      return NextResponse.redirect(new URL('/login?error=oauth_failed', request.url))
+    }
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      console.error('No user after OAuth session exchange')
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+
+    // Check if merchants profile exists
+    let { data: profile, error: profileError } = await supabase
+      .from('merchants')
+      .select('id')
+      .eq('user_id', user.id)
+      .single()
+
+    if (profileError && profileError.code !== 'PGRST116') { // PGRST116 = no rows
+      console.error('Profile check failed:', profileError)
+    }
+
+    if (!profile) {
+      // Create new merchants profile for OAuth user
+      const businessName = user.user_metadata?.full_name || 
+                          user.email?.split('@')[0] || 
+                          'My Business'
+
+      const { error: insertError } = await supabase
+        .from('merchants')
+        .insert({
+          user_id: user.id,
+          business_name: businessName,
+          business_type: 'retail',
+          subscription_tier: 'free',
+          subscription_status: 'active'
+        })
+
+      if (insertError) {
+        console.error('Profile creation failed:', insertError)
+        // Still redirect to home - user is auth'd even without profile
+      }
+    }
+
+    // Redirect to onboarding for new users or home for existing
+    return NextResponse.redirect(new URL('/onboarding', request.url))
+
+  } catch (error) {
+    console.error('OAuth callback error:', error)
+    return NextResponse.redirect(new URL('/login?error=callback_failed', request.url))
   }
-
-  const user = sessionData.user
-
-  // ── Check if a merchants profile already exists ────────────────────
-  const { data: existingProfile, error: profileFetchError } = await supabase
-    .from('merchants')
-    .select('user_id')
-    .eq('user_id', user.id)
-    .maybeSingle()
-
-  if (profileFetchError) {
-    console.error('[auth/callback] Profile fetch error:', profileFetchError)
-    // Non-fatal — still signed in, send to home and let the app handle it
-    return NextResponse.redirect(`${origin}/`)
-  }
-
-  // ── Existing user — skip onboarding ───────────────────────────────
-  if (existingProfile) {
-    return NextResponse.redirect(`${origin}/`)
-  }
-
-  // ── New user — create merchant profile then send to onboarding ─────
-  const { error: insertError } = await supabase
-    .from('merchants')
-    .insert({
-      user_id:             user.id,
-      business_name:       user.user_metadata?.full_name
-                             ?? user.email?.split('@')[0]
-                             ?? 'My Business',
-      business_type:       'retail',
-      subscription_tier:   'free',
-      subscription_status: 'active',
-    })
-
-  if (insertError) {
-    console.error('[auth/callback] Profile insert error:', insertError)
-    // Non-fatal — still signed in, send home
-    return NextResponse.redirect(`${origin}/`)
-  }
-
-  return NextResponse.redirect(`${origin}/onboarding`)
-
 }
