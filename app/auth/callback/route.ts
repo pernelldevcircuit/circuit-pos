@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
-
+import { createClient } from '@/lib/supabase-server'
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code  = searchParams.get('code')
@@ -22,12 +20,9 @@ export async function GET(request: NextRequest) {
   }
 
   // ── Exchange code for session ──────────────────────────────────────
-  const supabase = createRouteHandlerClient({ cookies })
-
+  const supabase = createClient()
   const { data: sessionData, error: sessionError } =
     await supabase.auth.exchangeCodeForSession(code)
-
-  if (sessionError || !sessionData.user) {
     console.error('[auth/callback] Session exchange failed:', sessionError)
     return NextResponse.redirect(
       `${origin}/login?error=${encodeURIComponent(
