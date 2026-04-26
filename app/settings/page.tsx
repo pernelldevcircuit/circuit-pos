@@ -47,7 +47,7 @@ export default function SettingsPage() {
     loadMerchantData()
   }, [router])
 
-  async function handleSuccess() {
+  async function handleSuccess(data: MerchantFormData) {
     // Reload the data to show updated values
     router.refresh()
   }
@@ -122,7 +122,7 @@ export default function SettingsPage() {
         {merchantData && (
           <BusinessSettingsForm
             initialData={merchantData}
-            onSuccess={handleSuccess}
+            onSave={handleSuccess}
           />
         )}
       </div>
