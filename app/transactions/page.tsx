@@ -62,7 +62,7 @@ export default function TransactionsPage() {
 
     async function loadTransactions() {
       try {
-        const txns = await getTransactions(supabase, merchantId, 100)
+        const txns = await getTransactions(supabase, merchantId!, 100)
         setTransactions(txns)
       } catch (err: unknown) {
         console.error('[transactions] load error:', err)
