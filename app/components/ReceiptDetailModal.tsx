@@ -175,13 +175,13 @@ export function ReceiptDetailModal({ transaction, onClose }: ReceiptDetailModalP
             <span style={{ color: '#9ca3af' }}>Subtotal</span>
             <span style={{ color: '#f9fafb', fontWeight: 500 }}>{formatCurrency(transaction.subtotal)}</span>
           </div>
-          {transaction.tax !== null && transaction.tax > 0 && (
+          {transaction.tax != null && transaction.tax > 0 && (
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
               <span style={{ color: '#9ca3af' }}>Tax</span>
               <span style={{ color: '#f9fafb', fontWeight: 500 }}>{formatCurrency(transaction.tax)}</span>
             </div>
           )}
-          {transaction.discount !== null && transaction.discount > 0 && (
+          {transaction.discount != null && transaction.discount > 0 && (
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
               <span style={{ color: '#9ca3af' }}>Discount</span>
               <span style={{ color: '#ef4444', fontWeight: 500 }}>-{formatCurrency(transaction.discount)}</span>
