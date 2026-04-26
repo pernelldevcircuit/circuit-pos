@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { BusinessSettingsForm } from '@/app/components/BusinessSettingsForm'
-import { getMerchantProfile, MerchantFormData } from '@/lib/merchant'
-
+import { getMerchantProfile, MerchantFormData, profileToFormData } from '@/lib/merchant'
 export default function SettingsPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -37,20 +36,8 @@ export default function SettingsPage() {
         }
 
         // Convert merchant data to form data format
-        setMerchantData({
-          business_name: merchant.business_name || '',
-          email: merchant.email || session.user.email || '',
-          phone: merchant.phone || '',
-          address: merchant.address || '',
-          city: merchant.city || '',
-          state: merchant.state || '',
-          zip: merchant.zip || '',
-          country: merchant.country || 'US',
-          tax_id: merchant.tax_id || '',
-          stripe_onboarding_complete: merchant.stripe_onboarding_complete || false
-        })
-      } catch (err: unknown) {
-        console.error('[settings] load error:', err)
+      setMerchantData(profileToFormData(merchant))
+      } catch (err: unknown) {        console.error('[settings] load error:', err)
         setError(err instanceof Error ? err.message : 'Failed to load settings')
       } finally {
         setLoading(false)
